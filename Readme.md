@@ -1,7 +1,7 @@
 <div align="center">
   <img src="docs/logo-upb.png" alt="Universidad Pontificia Bolivariana" width="340"/>
 
-  <h1>🎬 Reseñas de Películas</h1>
+  <h1> Reseñas de Películas</h1>
 
   <p><strong>¿Viste una película que te voló la cabeza? ¿O una que no vale ni el pop corn?<br>
   Dilo, fírmalo, y que el mundo lo sepa.</strong></p>
@@ -20,23 +20,14 @@
 
 ---
 
-## La idea
+Una aplicacion de reseñas de películas donde cada opinión pertenece a un usuario real: se crea con su cuenta, se puede editar o borrar solo por él, y nadie más puede tocarla. Nada de reseñas anónimas o "estrellitas" sin dueño.
 
-Olvídate de las estrellitas genéricas de un sitio cualquiera. Aquí cada reseña **tiene nombre y apellido**: es tuya, queda guardada bajo tu cuenta, y solo tú puedes volver a tocarla — editarla cuando cambies de opinión, o borrarla si ya no representa lo que piensas.
-
-Es una comunidad chica pero con reglas de una app real: cuentas seguras con contraseñas hasheadas (nunca en texto plano), sesiones firmadas con JWT que no dependen de que el servidor "recuerde" quién eres, y un catálogo de películas que crece con cada reseña nueva.
-
-**Lo que vas a poder hacer:**
-
-| | |
-|---|---|
-| 🎥 **Explorar** | Un catálogo de películas con imagen, título y año — el punto de partida de todo. |
-| ✍️ **Opinar** | Publica tu reseña con una calificación de 1 a 5. Sin filtros, sin anonimato. |
-| 🔐 **Tener cuenta propia** | Regístrate, inicia sesión, y que tu sesión quede protegida de principio a fin. |
-| ✏️ **Tener el control** | Edita o borra *tus* reseñas cuando quieras. Las de los demás, ni las tocas. |
-| 📖 **Leer a los demás** | Cada reseña muestra quién la escribió y sobre qué película — sin datos de más. |
-
-Por debajo, es una API REST real construida sobre NestJS, con Prisma hablándole a SQLite y JWT cuidando cada puerta. Por encima, va a ser una SPA en Vue tan rápida que se siente como una app nativa. Bienvenido — dale un vistazo al código, no muerde.
+¿Qué hace?
+Catálogo de películas — listado con imagen, título y año.
+Reseñas con calificación — cada usuario puede publicar su opinión y puntuarla de 1 a 5.
+Autenticación completa — registro, login, y sesiones protegidas con JWT.
+Ownership de datos — cada usuario edita o borra únicamente sus propias reseñas; las de otros son de solo lectura.
+Vista pública de reseñas — se puede ver quién escribió qué, sin exponer datos sensibles.
 
 ---
 
@@ -183,8 +174,8 @@ pnpm dev   # http://localhost:5173
 | GET | `/api/reviews/:id` | Obtener reseña | ✅ |
 | PATCH | `/api/reviews/:id` | Actualizar reseña | ✅ |
 | DELETE | `/api/reviews/:id` | Eliminar reseña | ✅ |
-| POST | `/api/auth/registro` | Registrar usuario | 🚧 |
-| POST | `/api/auth/login` | Iniciar sesión, obtener JWT | 🚧 |
+| POST | `/api/auth/registro` | Registrar usuario | Falta |
+| POST | `/api/auth/login` | Iniciar sesión, obtener JWT | Falta |
 
 > Detalle completo de cada endpoint (body, respuestas, errores) en `backend/docs/`.
 
@@ -194,10 +185,11 @@ pnpm dev   # http://localhost:5173
 
 <!-- Agregar/editar antes de subir a git -->
 
-| Integrante | Rol |
-|---|---|
-| Iker Acevedo | Backend (NestJS, Prisma, Auth) |
-| _[Nombre del compañero]_ | Frontend (Vue) |
+| Integrante |
+|---|
+| _[Nombre del compañero]_ |
+| _[Nombre del compañero]_ |
+| Iker Acevedo |
 
 Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana
 Plataforma de Programación Empresarial
