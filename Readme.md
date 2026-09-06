@@ -3,7 +3,7 @@
 
   <h1> Reseñas de Películas</h1>
 
-  <p><strong>¿Viste una película que te voló la cabeza? ¿O una que no vale ni el pop corn?<br>
+  <p><strong>¿Viste una película que te gusto? Genial, reséñala para que todos puedan verla y dar su opinion<br>
   Dilo, fírmalo, y que el mundo lo sepa.</strong></p>
 
   <p>
@@ -74,6 +74,31 @@ Taller-1/
 
 ---
 
+## Frontend — guía para el equipo
+
+> 🚧 Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
+
+### Cómo conectarse a la API
+
+- Base URL en desarrollo: `http://localhost:3000/api`
+- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
+- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
+- Autenticación (cuando esté lista): header `Authorization: Bearer <token>`.
+
+### Lo que necesitan saber antes de construir pantallas
+
+- El endpoint de reseñas (`POST /reviews`) hoy pide `autorId` en el body **de forma temporal** — va a desaparecer en cuanto se conecte la autenticación. No construir un input para eso.
+- Revisar `backend/docs/` y `backend/requests/*.http` para ver la forma exacta de cada respuesta antes de tipar los modelos en el front.
+
+### Cómo levantar el frontend (una vez creado)
+
+```bash
+cd frontend
+pnpm install
+pnpm dev   # http://localhost:5173
+```
+---
+
 ## Backend — cómo funciona
 
 ### Estructura
@@ -130,32 +155,6 @@ pnpm build                # compila a dist/
 pnpm test                 # tests unitarios (vitest)
 pnpm test:e2e             # tests end-to-end
 pnpm exec prisma studio   # explorador visual de la base de datos
-```
-
----
-
-## Frontend — guía para el equipo
-
-> 🚧 Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
-
-### Cómo conectarse a la API
-
-- Base URL en desarrollo: `http://localhost:3000/api`
-- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
-- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
-- Autenticación (cuando esté lista): header `Authorization: Bearer <token>`.
-
-### Lo que necesitan saber antes de construir pantallas
-
-- El endpoint de reseñas (`POST /reviews`) hoy pide `autorId` en el body **de forma temporal** — va a desaparecer en cuanto se conecte la autenticación. No construir un input para eso.
-- Revisar `backend/docs/` y `backend/requests/*.http` para ver la forma exacta de cada respuesta antes de tipar los modelos en el front.
-
-### Cómo levantar el frontend (una vez creado)
-
-```bash
-cd frontend
-pnpm install
-pnpm dev   # http://localhost:5173
 ```
 
 ---
