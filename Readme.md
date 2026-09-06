@@ -3,8 +3,7 @@
 
   <h1> Reseñas de Películas</h1>
 
-  <p><strong>¿Viste una película que te gusto? Genial, reséñala para que todos puedan verla y dar su opinion<br>
-  Dilo, fírmalo, y que el mundo lo sepa.</strong></p>
+  <p><strong>¿Viste una película que te gusto? Genial, reséñala para que todos puedan verla y dar su opinion<br></strong></p>
 
   <p>
     <img src="https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white" />
@@ -20,7 +19,7 @@
 
 ---
 
-Una aplicacion de reseñas de películas donde cada opinión pertenece a un usuario real: se crea con su cuenta, se puede editar o borrar solo por él, y nadie más puede tocarla. Nada de reseñas anónimas o "estrellitas" sin dueño.
+Una aplicacion de reseñas de películas donde cada opinión pertenece a un usuario real: se crea con su cuenta, se puede editar o borrar solo por él, y nadie más puede tocarla.
 
 ¿Qué hace?
 Catálogo de películas — listado con imagen, título y año.
@@ -49,7 +48,7 @@ Vista pública de reseñas — se puede ver quién escribió qué, sin exponer d
 El proyecto es un **monorepo de dos carpetas hermanas**, sin herramienta de monorepo (no comparten dependencias, así que no la necesitan):
 
 ```
-Taller-1/
+peliculas-review/
 ├── backend/     # API REST en NestJS — este README la documenta en detalle
 └── frontend/    # SPA en Vue — consume la API, ver sección Frontend
 ```
