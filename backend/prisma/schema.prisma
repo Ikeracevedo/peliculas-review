@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Modelo usuario que se registra y publica reseñas
+model Usuario {
+  id Int @id @default(autoincrement())
+  correo String @unique
+  nombre String
+  
+  // Contrasñea Hasheada en bycrypt
+  password String
+  creadoEn DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  reviews Review[]
+}
+
+// Pelicula sobre la cual se escriben las reseñas
+model Pelicula {
+  id Int @id @default(autoincrement())
+  nombre String
+  imagen String
+  descripcion String?
+  estreno Int?
+  creadaEn DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  reviews Review[]
+
+}
+
+// Resseña 
+model Review {
+  id Int @id @default(autoincrement())
+  titulo String
+  contenido String
+  calificacion Int
+  creadaEn DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  peliculaId Int
+  pelicula Pelicula @relation(fields: [peliculaId], references: [id], onDelete: Cascade)
+
+  autorId Int
+  autor Usuario @relation(fields: [autorId], references:[id], onDelete: Cascade)
+
+
+  // El usuario solo puede reseñar una vez cada pelicula
+  @@unique([peliculaId, autorId])
+  @@index([peliculaId])
+  @@index([autorId])
+}

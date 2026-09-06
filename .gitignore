@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+*.tsbuildinfo
+
+# Variables de entorno — NUNCA se suben
+.env
+.env.local
+.env.*.local
+
+# Base de datos local de SQLite
+*.db
+*.db-journal
+
+# Cliente de Prisma generado (se regenera con prisma generate)
+generated/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Cobertura de tests
+coverage/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
