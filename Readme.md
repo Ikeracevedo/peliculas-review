@@ -26,7 +26,7 @@
 
 ## ¿Qué puedes hacer?
 
-EL objetivo es crear una comunidad para:
+El objetivo es crear una comunidad para:
 
 - 🔎 **Explorar** un catálogo de películas con imagen, nombre y año de estreno.
 - ✍️ **Reseñar** cualquier película: título, contenido y una calificación de 1 a 5.
@@ -55,7 +55,7 @@ El proyecto es un **monorepo de dos carpetas hermanas**, sin herramienta de mono
 
 ```
 peliculas-review/
-├── backend/     # API REST en NestJS — este README la documenta en detalle
+├── backend/     # API REST en NestJS
 └── frontend/    # SPA en Vue — consume la API, ver sección Frontend
 ```
 
@@ -81,11 +81,38 @@ peliculas-review/
 
 ## Frontend — guía para el equipo
 
-> Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
+> 🚧 Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
 
-Definir estructura del proyecto y decisiones clave para el desarrollo
+### Cómo conectarse a la API
 
---- 
+- Base URL en desarrollo: `http://localhost:3000/api`
+- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
+- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
+
+### Autenticación — cómo funciona (ya está lista, no es temporal)
+
+Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
+
+1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
+2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
+3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
+4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
+5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
+6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
+
+Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
+
+📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
+
+### Cómo levantar el frontend (una vez creado)
+
+```bash
+cd frontend
+pnpm install
+pnpm dev   # http://localhost:5173
+```
+
+---
 
 ## Backend — cómo funciona
 
@@ -149,38 +176,9 @@ pnpm exec prisma studio   # explorador visual de la base de datos
 
 ---
 
-### Cómo conectarse a la API
-
-- Base URL en desarrollo: `http://localhost:3000/api`
-- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
-- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
-
-### Autenticación — cómo funciona (ya está lista, no es temporal)
-
-Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
-
-1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
-2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
-3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
-4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
-5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
-6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
-
-Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
-
-📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
-
-### Cómo levantar el frontend (una vez creado)
-
-```bash
-cd frontend
-pnpm install
-pnpm dev   # http://localhost:5173
-```
-
----
-
 ## Endpoints principales
+
+> Detalle completo de cada endpoint (body, respuestas, errores) en [`backend/docs/API.md`](backend/docs/API.md).
 
 ### Autenticación — `/auth`
 
@@ -193,40 +191,39 @@ pnpm dev   # http://localhost:5173
 
 | Método | Ruta | Requiere | Descripción |
 |---|---|---|---|
-| POST | `/api/peliculas` | Token | Crear película |
-| GET | `/api/peliculas` | Token | Listar películas |
-| GET | `/api/peliculas/:id` | Token | Obtener película |
-| PATCH | `/api/peliculas/:id` | Token | Actualizar película |
-| DELETE | `/api/peliculas/:id` | Token | Eliminar película |
+| POST | `/api/peliculas` | 🔒 Token | Crear película |
+| GET | `/api/peliculas` | 🔒 Token | Listar películas |
+| GET | `/api/peliculas/:id` | 🔒 Token | Obtener película |
+| PATCH | `/api/peliculas/:id` | 🔒 Token | Actualizar película |
+| DELETE | `/api/peliculas/:id` | 🔒 Token | Eliminar película |
 
 ### Reseñas — `/reviews`
 
 | Método | Ruta | Requiere | Descripción |
 |---|---|---|---|
-| POST | `/api/reviews` | Token | Crear reseña (el autor sale del token, no del body) |
-| GET | `/api/reviews` | Token | Listar reseñas (con película y autor anidados) |
-| GET | `/api/reviews/:id` | Token | Obtener reseña |
-| PATCH | `/api/reviews/:id` | Token + dueño | Actualizar reseña propia |
-| DELETE | `/api/reviews/:id` | Token + dueño | Eliminar reseña propia |
+| POST | `/api/reviews` | 🔒 Token | Crear reseña (el autor sale del token, no del body) |
+| GET | `/api/reviews` | 🔒 Token | Listar reseñas (con película y autor anidados) |
+| GET | `/api/reviews/:id` | 🔒 Token | Obtener reseña |
+| PATCH | `/api/reviews/:id` | 🔒 Token + dueño | Actualizar reseña propia |
+| DELETE | `/api/reviews/:id` | 🔒 Token + dueño | Eliminar reseña propia |
 
 ### Usuarios — `/usuarios` (administración)
 
 | Método | Ruta | Requiere | Descripción |
 |---|---|---|---|
-| GET | `/api/usuarios` |  Token +  rol `ADMIN` | Listar usuarios |
-| GET | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Obtener usuario |
-| PATCH | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Actualizar usuario (incluye cambiar rol) |
-| DELETE | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Eliminar usuario |
+| GET | `/api/usuarios` | 🔒 Token + 🔐 rol `ADMIN` | Listar usuarios |
+| GET | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Obtener usuario |
+| PATCH | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Actualizar usuario (incluye cambiar rol) |
+| DELETE | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Eliminar usuario |
 
 ---
 
 ## Equipo
 
-
 | Integrante |
 |---|
-| Iker Acevedo | 
-| Jose Mejía | 
+| Iker Acevedo |
+| Jose Mejía |
 
 Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana
 Plataforma de Programación Empresarial
