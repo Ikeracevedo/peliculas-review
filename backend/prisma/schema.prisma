@@ -8,6 +8,12 @@ datasource db {
   provider = "sqlite"
 }
 
+/// Rol del usuario. Controla qué puede hacer más allá de estar autenticado.
+enum Rol {
+  USUARIO
+  ADMIN
+}
+
 /// Usuario que se registra y publica reseñas.
 model Usuario {
   id            Int      @id @default(autoincrement())
@@ -16,6 +22,10 @@ model Usuario {
 
   /// Contraseña hasheada con bcrypt.
   password      String
+
+  /// Todo registro público crea USUARIO. ADMIN solo se asigna manualmente.
+  rol           Rol      @default(USUARIO)
+
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 

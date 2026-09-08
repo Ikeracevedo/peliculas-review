@@ -6,8 +6,10 @@
 #  esbuild           -> descarga el binario nativo que usa vitest/vite
 #  prisma            -> CLI, prepara sus binarios
 #  @prisma/engines   -> descarga los motores de consulta de Prisma
+#  bcrypt            -> modulo nativo en C++ para el hash de contrasenas
 allowBuilds:
   better-sqlite3: true
   esbuild: true
   prisma: true
   '@prisma/engines': true
+  bcrypt: true

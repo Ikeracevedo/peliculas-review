@@ -11,8 +11,6 @@ import {
 import { PeliculasService } from './peliculas.service';
 import { CreatePeliculaDto } from './dto/create-pelicula.dto';
 import { UpdatePeliculaDto } from './dto/update-pelicula.dto';
-
-
 @Controller('peliculas')
 export class PeliculasController {
   constructor(private readonly peliculasService: PeliculasService) {}

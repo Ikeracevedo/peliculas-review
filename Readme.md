@@ -1,10 +1,14 @@
 <div align="center">
   <img src="docs/logo-upb.png" alt="Universidad Pontificia Bolivariana" width="340"/>
 
-  <h1>🎬 Reseñas de Películas</h1>
+  <h1>Reseñas de Películas</h1>
 
-  <p><strong>¿Viste una película que te voló la cabeza? ¿O una que no vale ni el pop corn?<br>
-  Dilo, fírmalo, y que el mundo lo sepa.</strong></p>
+  <p>Una comunidad para explorar un catálogo de películas, lee lo que<br>
+  otros usuarios opinan y comparte tu propia calificación y reseña de cada una.<br>
+  Cada usuario se registra, inicia sesión y gestiona sus propias reseñas —<br>
+  crearlas, editarlas o eliminarlas — con su sesión protegida mediante JWT.</p>
+
+  <p><sub>Arquitectura cliente-servidor desacoplada: SPA en Vue + API REST stateless en NestJS.</sub></p>
 
   <p>
     <img src="https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white" />
@@ -20,23 +24,15 @@
 
 ---
 
-## La idea
+## ¿Qué puedes hacer?
 
-Olvídate de las estrellitas genéricas de un sitio cualquiera. Aquí cada reseña **tiene nombre y apellido**: es tuya, queda guardada bajo tu cuenta, y solo tú puedes volver a tocarla — editarla cuando cambies de opinión, o borrarla si ya no representa lo que piensas.
+EL objetivo es crear una comunidad para:
 
-Es una comunidad chica pero con reglas de una app real: cuentas seguras con contraseñas hasheadas (nunca en texto plano), sesiones firmadas con JWT que no dependen de que el servidor "recuerde" quién eres, y un catálogo de películas que crece con cada reseña nueva.
-
-**Lo que vas a poder hacer:**
-
-| | |
-|---|---|
-| 🎥 **Explorar** | Un catálogo de películas con imagen, título y año — el punto de partida de todo. |
-| ✍️ **Opinar** | Publica tu reseña con una calificación de 1 a 5. Sin filtros, sin anonimato. |
-| 🔐 **Tener cuenta propia** | Regístrate, inicia sesión, y que tu sesión quede protegida de principio a fin. |
-| ✏️ **Tener el control** | Edita o borra *tus* reseñas cuando quieras. Las de los demás, ni las tocas. |
-| 📖 **Leer a los demás** | Cada reseña muestra quién la escribió y sobre qué película — sin datos de más. |
-
-Por debajo, es una API REST real construida sobre NestJS, con Prisma hablándole a SQLite y JWT cuidando cada puerta. Por encima, va a ser una SPA en Vue tan rápida que se siente como una app nativa. Bienvenido — dale un vistazo al código, no muerde.
+- 🔎 **Explorar** un catálogo de películas con imagen, nombre y año de estreno.
+- ✍️ **Reseñar** cualquier película: título, contenido y una calificación de 1 a 5.
+- 👤 **Registrarse e iniciar sesión** de forma segura (contraseña hasheada, sesión con JWT).
+- ✏️ **Editar o eliminar** únicamente sus propias reseñas — nunca las de otro usuario. Un `ADMIN` sí puede moderar cualquiera.
+- 📖 **Leer** las reseñas de todos, con el nombre del autor y la película asociada.
 
 ---
 
@@ -58,7 +54,7 @@ Por debajo, es una API REST real construida sobre NestJS, con Prisma hablándole
 El proyecto es un **monorepo de dos carpetas hermanas**, sin herramienta de monorepo (no comparten dependencias, así que no la necesitan):
 
 ```
-Taller-1/
+peliculas-review/
 ├── backend/     # API REST en NestJS — este README la documenta en detalle
 └── frontend/    # SPA en Vue — consume la API, ver sección Frontend
 ```
@@ -83,6 +79,14 @@ Taller-1/
 
 ---
 
+## Frontend — guía para el equipo
+
+> Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
+
+Definir estructura del proyecto y decisiones clave para el desarrollo
+
+--- 
+
 ## Backend — cómo funciona
 
 ### Estructura
@@ -92,24 +96,26 @@ backend/
 ├── prisma/
 │   ├── schema.prisma       # Modelos: Usuario, Pelicula, Review
 │   ├── migrations/         # Historial versionado de cambios a la base
-│   └── seed.ts             # Datos de prueba (usuario + película demo)
+│   └── seed.ts             # 2 usuarios + 20 películas de prueba
 ├── src/
 │   ├── prisma/             # PrismaModule (@Global) + PrismaService
-│   ├── usuarios/           # Persistencia de usuarios (sin controller público)
-│   ├── auth/               # Registro, login, JWT, guards
+│   ├── usuarios/           # Persistencia + CRUD de administración (solo ADMIN)
+│   ├── auth/               # Registro, login, JWT, guards, decoradores
 │   ├── peliculas/          # CRUD de películas
-│   ├── reviews/            # CRUD de reseñas
+│   ├── reviews/            # CRUD de reseñas (con ownership)
 │   ├── app.module.ts
 │   └── main.ts             # Bootstrap: CORS, prefijo /api, ValidationPipe global
 ├── requests/                # Archivos .http para probar la API desde VS Code
-├── docs/                    # Documentación de la API para el equipo
+├── docs/                    # Documentación de la API para el equipo (ver docs/API.md)
 └── prisma7.config.ts        # Config de Prisma (migraciones, seed)
 ```
 
 ### Decisiones clave (por si el equipo se pregunta "por qué así")
 
 - **`PrismaModule` es `@Global()`**: una sola conexión a SQLite para toda la app. Si cada módulo declarara su propio `PrismaService`, tendríamos múltiples conexiones abriéndose a la misma base — un antipatrón real en Nest.
-- **`usuarios/` no tiene controller**: no hay un endpoint público de listado/edición de usuarios. Solo `AuthService` lo consume internamente. Evita exponer correos y datos de cuentas sin protección.
+- **Guard global de autenticación**: toda la API exige JWT salvo `/auth/registro` y `/auth/login`. Las rutas públicas se marcan explícitamente con `@Public()`.
+- **`usuarios/` es solo para administración**: no hay endpoint público de registro/listado de usuarios ahí — eso vive en `auth/`. `GET/PATCH/DELETE /usuarios` requieren rol `ADMIN`.
+- **Ownership en reviews**: un usuario con rol `USUARIO` solo puede editar o borrar sus propias reseñas; un `ADMIN` puede moderar cualquiera. El `autorId` nunca viaja en el body — sale del JWT, para que nadie pueda publicar reseñas fingiendo ser otro usuario.
 - **Todo el schema en español** (`Usuario`, `Pelicula`), con `Review` en inglés a propósito — decisión consciente del equipo, no inconsistencia.
 - **`ValidationPipe` global** con `whitelist: true`: cualquier campo que el cliente mande y no esté declarado en el DTO se descarta automáticamente (evita mass assignment).
 
@@ -118,7 +124,7 @@ backend/
 ```bash
 DATABASE_URL="file:./dev.db"
 JWT_SECRET="<cadena aleatoria larga — generar con: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">"
-JWT_EXPIRES_IN="1h"
+JWT_EXPIRES_IN="3600"
 ```
 
 ### Cómo levantar el backend
@@ -127,8 +133,8 @@ JWT_EXPIRES_IN="1h"
 cd backend
 pnpm install
 pnpm exec prisma migrate dev   # crea/actualiza dev.db según prisma/schema.prisma
-pnpm exec prisma db seed       # datos de prueba
-pnpm start:dev                 # http://localhost:3000/api
+pnpm exec prisma db seed       # crea una base para trabajar con datos de prueba
+pnpm start:dev                 # Ruta http://localhost:3000/api
 ```
 
 ### Scripts útiles
@@ -143,21 +149,26 @@ pnpm exec prisma studio   # explorador visual de la base de datos
 
 ---
 
-## Frontend — guía para el equipo
-
-> 🚧 Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
-
 ### Cómo conectarse a la API
 
 - Base URL en desarrollo: `http://localhost:3000/api`
 - CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
 - Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
-- Autenticación (cuando esté lista): header `Authorization: Bearer <token>`.
 
-### Lo que necesitan saber antes de construir pantallas
+### Autenticación — cómo funciona (ya está lista, no es temporal)
 
-- El endpoint de reseñas (`POST /reviews`) hoy pide `autorId` en el body **de forma temporal** — va a desaparecer en cuanto se conecte la autenticación. No construir un input para eso.
-- Revisar `backend/docs/` y `backend/requests/*.http` para ver la forma exacta de cada respuesta antes de tipar los modelos en el front.
+Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
+
+1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
+2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
+3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
+4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
+5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
+6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
+
+Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
+
+📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
 
 ### Cómo levantar el frontend (una vez creado)
 
@@ -171,33 +182,51 @@ pnpm dev   # http://localhost:5173
 
 ## Endpoints principales
 
-| Método | Ruta | Descripción | Estado |
-|---|---|---|---|
-| POST | `/api/peliculas` | Crear película | ✅ |
-| GET | `/api/peliculas` | Listar películas | ✅ |
-| GET | `/api/peliculas/:id` | Obtener película | ✅ |
-| PATCH | `/api/peliculas/:id` | Actualizar película | ✅ |
-| DELETE | `/api/peliculas/:id` | Eliminar película | ✅ |
-| POST | `/api/reviews` | Crear reseña | ✅ |
-| GET | `/api/reviews` | Listar reseñas (con película y autor) | ✅ |
-| GET | `/api/reviews/:id` | Obtener reseña | ✅ |
-| PATCH | `/api/reviews/:id` | Actualizar reseña | ✅ |
-| DELETE | `/api/reviews/:id` | Eliminar reseña | ✅ |
-| POST | `/api/auth/registro` | Registrar usuario | 🚧 |
-| POST | `/api/auth/login` | Iniciar sesión, obtener JWT | 🚧 |
+### Autenticación — `/auth`
 
-> Detalle completo de cada endpoint (body, respuestas, errores) en `backend/docs/`.
+| Método | Ruta | Requiere | Descripción |
+|---|---|---|---|
+| POST | `/api/auth/registro` | — | Registrar usuario (rol `USUARIO` por defecto) |
+| POST | `/api/auth/login` | — | Iniciar sesión, obtener `access_token` (JWT) |
+
+### Películas — `/peliculas`
+
+| Método | Ruta | Requiere | Descripción |
+|---|---|---|---|
+| POST | `/api/peliculas` | Token | Crear película |
+| GET | `/api/peliculas` | Token | Listar películas |
+| GET | `/api/peliculas/:id` | Token | Obtener película |
+| PATCH | `/api/peliculas/:id` | Token | Actualizar película |
+| DELETE | `/api/peliculas/:id` | Token | Eliminar película |
+
+### Reseñas — `/reviews`
+
+| Método | Ruta | Requiere | Descripción |
+|---|---|---|---|
+| POST | `/api/reviews` | Token | Crear reseña (el autor sale del token, no del body) |
+| GET | `/api/reviews` | Token | Listar reseñas (con película y autor anidados) |
+| GET | `/api/reviews/:id` | Token | Obtener reseña |
+| PATCH | `/api/reviews/:id` | Token + dueño | Actualizar reseña propia |
+| DELETE | `/api/reviews/:id` | Token + dueño | Eliminar reseña propia |
+
+### Usuarios — `/usuarios` (administración)
+
+| Método | Ruta | Requiere | Descripción |
+|---|---|---|---|
+| GET | `/api/usuarios` |  Token +  rol `ADMIN` | Listar usuarios |
+| GET | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Obtener usuario |
+| PATCH | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Actualizar usuario (incluye cambiar rol) |
+| DELETE | `/api/usuarios/:id` |  Token +  rol `ADMIN` | Eliminar usuario |
 
 ---
 
 ## Equipo
 
-<!-- Agregar/editar antes de subir a git -->
 
-| Integrante | Rol |
-|---|---|
-| Iker Acevedo | Backend (NestJS, Prisma, Auth) |
-| _[Nombre del compañero]_ | Frontend (Vue) |
+| Integrante |
+|---|
+| Iker Acevedo | 
+| Jose Mejía | 
 
 Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana
 Plataforma de Programación Empresarial
