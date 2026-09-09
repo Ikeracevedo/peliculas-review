@@ -103,7 +103,7 @@ watch(searchQuery, () => {
           class="group cursor-pointer flex flex-col"
         >
           <div class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-[#2a2a2a] group-hover:border-[#a855f7] transition-colors">
-            <img :src="pelicula.imagen" :alt="pelicula.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" @error="(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image'">
+            <img :src="pelicula.imagen" :alt="pelicula.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" @error="(e) => { const t = e.target as HTMLImageElement; if (!t.src.includes('placehold.co')) t.src = 'https://placehold.co/300x450/1a1a1a/a855f7?text=Sin+Imagen'; }">
           </div>
           <h3 class="font-semibold text-white text-sm group-hover:text-[#a855f7] transition-colors line-clamp-1">{{ pelicula.nombre }}</h3>
           <p class="text-gray-400 text-xs mt-1" v-if="pelicula.estreno">{{ pelicula.estreno }}</p>
