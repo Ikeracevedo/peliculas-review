@@ -81,35 +81,79 @@ peliculas-review/
 
 ## Frontend — guía para el equipo
 
-> 🚧 Aún no se ha creado el proyecto. Stack acordado: **Vue 3 + Vite**.
+El frontend fue desarrollado como una **Single Page Application (SPA)** moderna, reactiva y responsive con un diseño oscuro (*Dark Mode*) de alta estética cinematográfica (*CineVault*).
 
-### Cómo conectarse a la API
+### Tecnologías Utilizadas
 
-- Base URL en desarrollo: `http://localhost:3000/api`
-- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
-- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
+- **Vue 3** (`<script setup>` + Composition API): Reactividad y estructura modular de componentes.
+- **Vite**: Bundler ultra-rápido para desarrollo e integración HMR (Hot Module Replacement).
+- **Vue Router 4**: Enrutamiento declarativo con *Navigation Guards* para la protección de rutas privadas y administrativas (`/admin/*`).
+- **Pinia**: Gestión del estado global de autenticación (`useAuthStore`) con persistencia en `localStorage`.
+- **Axios**: Cliente HTTP configurado con interceptores globales para inyectar automáticamente el encabezado `Authorization: Bearer <token>` y gestionar deslogueos automáticos ante respuestas `401 Unauthorized`.
+- **Tailwind CSS**: Estilizado utility-first personalizado con gradientes de neón, desenfoques (*backdrop-blur*) y diseño adaptable.
+- **Lucide Vue Icons**: Iconografía vectorizada para componentes de la interfaz.
 
-### Autenticación — cómo funciona (ya está lista, no es temporal)
+---
 
-Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
+### Arquitectura del Frontend
 
-1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
-2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
-3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
-4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
-5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
-6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
+La estructura del código en `frontend/src/` está organizada por responsabilidades desacopladas:
 
-Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
+```
+frontend/src/
+├── api/             # Instancia central de Axios e Interceptores HTTP
+├── assets/          # Estilos globales y utilidades CSS (Tailwind)
+├── components/      # Componentes UI reutilizables
+├── layouts/         # Plantillas de estructura (MainLayout y AdminLayout)
+├── router/          # Configuración de rutas y guards de navegación (Auth & Admin)
+├── stores/          # Estado global con Pinia (authStore)
+├── types/           # Interfaces TypeScript unificadas (Usuario, Pelicula, Review)
+└── views/           # Vistas / Páginas de la aplicación
+```
 
-📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
+---
 
-### Cómo levantar el frontend (una vez creado)
+### Explicación del Uso de CRUD en la Interfaz
+
+La aplicación implementa las operaciones **CRUD** (Create, Read, Update, Delete) de forma completa e interactiva para las tres entidades del dominio:
+
+#### 1. Películas (`/peliculas` y `/admin/peliculas`)
+- **Read (Lectura)**:
+  - **Catálogo Principal (`/peliculas`)**: Todos los usuarios pueden explorar el catálogo paginado, filtrar por título en tiempo real desde la barra de búsqueda del *Hero Section* y seleccionar una película para ver sus detalles.
+  - **Detalle de Película (`/peliculas/:id`)**: Muestra la información completa de la película (banner, sinopsis, año de estreno, calificación promedio de usuarios y botón para tráiler).
+- **Create / Update / Delete (Escritura y Gestión)**:
+  - **Panel de Administración (`/admin/peliculas`)**: Exclusivo para usuarios con rol `ADMIN`. Permite crear nuevas películas, editar su título, año de estreno e imagen, o eliminarlas mediante modales interactivos integrados a la API.
+
+#### 2. Reseñas / Reviews (`/peliculas/:id`)
+- **Create (Creación)**:
+  - Cualquier usuario autenticado puede presionar **"Write a Review"** en la página de detalle de una película. Se despliega un formulario para ingresar un título, contenido y una calificación de 1 a 5 estrellas. El backend asigna la autoría automáticamente a través del token JWT enviado.
+- **Read (Lectura)**:
+  - En la vista de detalle de cada película se despliega el listado de reseñas publicadas por la comunidad, mostrando las estrellas de calificación, la fecha y el avatar/nombre del autor.
+- **Update (Edición) y Delete (Eliminación)**:
+  - **Control de Propiedad (*Ownership*)**: Cada usuario ve los botones **"Edit"** y **"Delete"** **únicamente en sus propias reseñas**. Al hacer clic en *Edit*, el formulario se rellena automáticamente para actualizar la opinión.
+  - **Moderación**: Un usuario con rol `ADMIN` visualiza los botones de edición y eliminación en **todas** las reseñas para fines de moderación de contenido.
+
+#### 3. Usuarios (`/admin/usuarios`)
+- **Read (Lectura)**:
+  - **Gestión de Usuarios (`/admin/usuarios`)**: Vista administrativa donde se visualiza una tabla con todos los usuarios registrados en la plataforma, su correo, rol asignado (`USUARIO` o `ADMIN`), estado (*Active*) y fecha de registro. Incluye filtro por roles e insensible a mayúsculas/minúsculas para búsquedas por nombre o correo.
+- **Update (Actualización) y Delete (Eliminación)**:
+  - Desde la misma tabla administrativa, un `ADMIN` puede modificar el rol de un usuario o eliminarlo del sistema mediante diálogos de confirmación.
+
+---
+
+### Autenticación y Seguridad
+
+- **Registro (`/registro`) y Login (`/login`)**: Vistas dedicadas con validaciones de formulario. Al autenticarse correctamente, el servidor retorna el `access_token` JWT y la información del usuario, los cuales se almacenan en el `authStore` de Pinia.
+- **Protección de Rutas (*Guards*)**: Si un usuario no autenticado intenta ingresar a `/peliculas` o `/admin`, el router lo redirige a `/login`. Si un usuario con rol `USUARIO` intenta acceder a rutas `/admin/*`, es redirigido automáticamente al catálogo general.
+
+---
+
+### Cómo ejecutar el Frontend
 
 ```bash
 cd frontend
-pnpm install
-pnpm dev   # http://localhost:5173
+npm install
+npm run dev   # Se ejecuta en http://localhost:5173
 ```
 
 ---
