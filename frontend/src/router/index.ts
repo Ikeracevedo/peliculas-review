@@ -21,7 +21,7 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/peliculas'
+          redirect: '/login'
         },
         {
           path: 'peliculas',
@@ -76,7 +76,7 @@ router.beforeEach((to, from, next) => {
   }
   
   if ((to.name === 'Login' || to.name === 'Registro') && authStore.token) {
-    return next('/');
+    return next('/peliculas');
   }
   
   next();
