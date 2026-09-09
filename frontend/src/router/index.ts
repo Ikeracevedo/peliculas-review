@@ -34,6 +34,12 @@ const router = createRouter({
           name: 'PeliculaDetail',
           component: () => import('../views/PeliculaDetailView.vue'),
           meta: { requiresAuth: true }
+        },
+        {
+          path: 'watchlist',
+          name: 'Watchlist',
+          component: () => import('../views/WatchlistView.vue'),
+          meta: { requiresAuth: true }
         }
       ]
     },

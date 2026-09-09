@@ -14,7 +14,7 @@ const editingId = ref<number | null>(null);
 const formNombre = ref('');
 const formImagen = ref('');
 const formEstreno = ref<number | null>(null);
-const formDescripcion = ref('');
+const formSinopsis = ref('');
 const submitting = ref(false);
 
 // Pagination
@@ -54,7 +54,7 @@ const openCreate = () => {
   formNombre.value = '';
   formImagen.value = '';
   formEstreno.value = new Date().getFullYear();
-  formDescripcion.value = '';
+  formSinopsis.value = '';
   showForm.value = true;
 };
 
@@ -63,7 +63,7 @@ const openEdit = (p: Pelicula) => {
   formNombre.value = p.nombre;
   formImagen.value = p.imagen;
   formEstreno.value = p.estreno;
-  formDescripcion.value = p.descripcion || '';
+  formSinopsis.value = p.sinopsis || '';
   showForm.value = true;
 };
 
@@ -86,7 +86,7 @@ const submitForm = async () => {
       nombre: formNombre.value,
       imagen: formImagen.value,
       estreno: formEstreno.value || undefined,
-      descripcion: formDescripcion.value || undefined,
+      sinopsis: formSinopsis.value || undefined,
     };
     if (editingId.value) {
       await api.patch(`/peliculas/${editingId.value}`, payload);
@@ -139,7 +139,7 @@ const submitForm = async () => {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1">Synopsis</label>
-            <textarea v-model="formDescripcion" rows="3" class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#a855f7]"></textarea>
+            <textarea v-model="formSinopsis" rows="3" class="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#a855f7]"></textarea>
           </div>
           <div class="flex justify-end gap-3 pt-4">
             <button type="button" @click="showForm = false" class="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>

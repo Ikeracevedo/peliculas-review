@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
 }
 
 /// Rol del usuario. Controla qué puede hacer más allá de estar autenticado.
@@ -38,7 +37,7 @@ model Pelicula {
   id            Int      @id @default(autoincrement())
   nombre        String
   imagen        String
-  descripcion   String?
+  sinopsis      String?  // Nueva sinopsis breve
   estreno       Int?
   creadaEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt

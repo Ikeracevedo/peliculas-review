@@ -10,7 +10,7 @@ export interface Pelicula {
   id: number;
   nombre: string;
   imagen: string;
-  descripcion: string | null;
+  sinopsis: string | null;
   estreno: number | null;
   creadaEn: string;
   actualizadoEn: string;

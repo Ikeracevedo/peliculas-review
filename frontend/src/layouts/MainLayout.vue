@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
-import { Film, LogOut, User as UserIcon } from '@lucide/vue';
+import { Film, LogOut, User as UserIcon, Bookmark } from '@lucide/vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -21,7 +21,11 @@ const handleLogout = () => {
       </div>
       
       <nav class="flex items-center gap-6 text-sm font-medium">
-        <router-link to="/peliculas" class="text-gray-300 hover:text-white transition-colors" active-class="!text-white font-semibold">Catalog</router-link>
+        <router-link to="/peliculas" class="text-gray-300 hover:text-white transition-colors" active-class="!text-white font-semibold">Catálogo</router-link>
+        <router-link to="/watchlist" class="text-gray-300 hover:text-white transition-colors flex items-center gap-1" active-class="!text-white font-semibold">
+          <Bookmark class="w-4 h-4" />
+          <span>Watchlist</span>
+        </router-link>
         
         <router-link 
           v-if="authStore.user?.rol === 'ADMIN'" 
