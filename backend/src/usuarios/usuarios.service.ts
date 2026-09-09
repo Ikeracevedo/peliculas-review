@@ -28,7 +28,6 @@ export class UsuariosService {
     return this.prisma.usuario.findUnique({ where: { correo } });
   }
 
-  // --- CRUD de administración: nunca exponen el password ---
 
   findAll() {
     return this.prisma.usuario.findMany({

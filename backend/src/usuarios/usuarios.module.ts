@@ -3,8 +3,13 @@ import { UsuariosService } from './usuarios.service';
 import { UsuariosController } from './usuarios.controller';
 
 @Module({
+  // Capa para que lo consumas las peticiones HTTP
   controllers: [UsuariosController],
+  // Capa de servicio y logica del negocio
   providers: [UsuariosService],
-  exports: [UsuariosService], // AuthModule lo necesita para registro/login
+  // Permite que cualquier componente pueda importar y usar la logica del servicio
+  exports: [UsuariosService], 
 })
+
+// Permite que la clase sea utilizada en otros modulos
 export class UsuariosModule {}

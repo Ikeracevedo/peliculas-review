@@ -13,7 +13,7 @@ import { AuthModule } from './auth/auth.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     UsuariosModule,
-    AuthModule, // registra el Guard global (APP_GUARD) - debe cargar antes de usarse
+    AuthModule,  // Se registra la autenticacion para usarlo en todo el backend
     PeliculasModule,
     ReviewsModule,
   ],

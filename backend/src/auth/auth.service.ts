@@ -5,8 +5,7 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
-// Costo del hash: cada +1 DUPLICA el tiempo de computo. 10 es el estandar
-// razonable (~100ms) que balancea seguridad contra un login usable.
+// Nunmero de veces que bycrypt repote el algorirtmo de hashing
 const SALT_ROUNDS = 10;
 
 @Injectable()
@@ -24,7 +23,7 @@ export class AuthService {
 
     const passwordHasheada = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    // NOTA: nunca se lee dto.rol porque RegisterDto no lo declara.
+    // Nunca se lee dto.rol porque RegisterDto no lo declara.
     // Todo registro publico crea un usuario con rol USUARIO (default del schema).
     const usuario = await this.usuariosService.crear({
       correo: dto.correo,
