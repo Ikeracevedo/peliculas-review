@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaClient } from '../generated/prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { createClient } from '@libsql/client';
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? 'file:./dev.db',
-});
+const adapter = new PrismaLibSql({ url: 'file:./dev.db' });
 const prisma = new PrismaClient({ adapter });
 
 // Contraseña de prueba para AMBOS usuarios sembrados. Solo para desarrollo.
@@ -42,8 +42,8 @@ async function main() {
     where: { correo: 'ana@ejemplo.com' },
     update: {},
     create: {
-      correo: 'maria@ejemplo.com',
-      nombre: 'Maria',
+      correo: 'ana@ejemplo.com',
+      nombre: 'Ana',
       password: passwordHasheada,
       // rol se omite => usa el default del schema: USUARIO
     },
