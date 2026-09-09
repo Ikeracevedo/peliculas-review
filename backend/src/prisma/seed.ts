@@ -13,7 +13,7 @@ const PELICULAS = [
     nombre: "Interstellar",
     estreno: 2014,
     sinopsis: "Un grupo de exploradores viaja a traves de un agujero de gusano en busca de un nuevo hogar para la humanidad.",
-    imagen: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIe.jpg",
+    imagen: "https://www.themoviedb.org/t/p/w600_and_h900_face/cQuuBjG78j4b2r1dFpAjnjbUplv.jpg",
   },
   {
     nombre: "Inception",
@@ -37,7 +37,7 @@ const PELICULAS = [
     nombre: "The Godfather",
     estreno: 1972,
     sinopsis: "El patriarca de una familia mafiosa transfiere el control de su imperio a su hijo menor.",
-    imagen: "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsLMdL73KsPyd.jpg",
+    imagen: "https://www.themoviedb.org/t/p/w600_and_h900_face/5HlLUsmsv60cZVTzVns9ICZD6zU.jpg",
   },
   {
     nombre: "Forrest Gump",

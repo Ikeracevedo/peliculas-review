@@ -14,15 +14,15 @@ const peliculas = computed(() => watchlistStore.watchlist);
   <div class="px-6 py-8 max-w-7xl mx-auto">
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-white mb-2">Mi Watchlist</h1>
-      <p class="text-gray-400">Películas que quieres ver</p>
+      <p class="text-gray-400">Peliculas que quieres ver</p>
     </div>
 
     <div v-if="peliculas.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
       <BookmarkX class="w-16 h-16 text-gray-600 mb-4" />
-      <h2 class="text-xl font-semibold text-gray-400 mb-2">Tu watchlist está vacía</h2>
-      <p class="text-gray-500 mb-6">Añade películas desde el catálogo para guardarlas aquí.</p>
+      <h2 class="text-xl font-semibold text-gray-400 mb-2">Tu watchlist esta vacia</h2>
+      <p class="text-gray-500 mb-6">AÃ±ade peliculas desde el catalogo para guardarlas aqui.</p>
       <button @click="router.push('/peliculas')" class="bg-[#a855f7] hover:bg-[#9333ea] text-white px-6 py-3 rounded-lg font-medium transition-colors">
-        Explorar catálogo
+        Explorar catalogo
       </button>
     </div>
 
