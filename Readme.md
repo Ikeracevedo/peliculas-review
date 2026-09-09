@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
   <img src="docs/logo-upb.png" alt="Universidad Pontificia Bolivariana" width="340"/>
 
   <h1>Reseñas de Películas</h1>
@@ -148,12 +148,33 @@ La aplicación implementa las operaciones **CRUD** (Create, Read, Update, Delete
 
 ---
 
-### Cómo ejecutar el Frontend
+### Cómo conectarse a la API
+
+- Base URL en desarrollo: `http://localhost:3000/api`
+- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
+- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
+
+### Autenticación — cómo funciona (ya está lista, no es temporal)
+
+Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
+
+1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
+2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
+3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
+4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
+5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
+6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
+
+Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
+
+📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
+
+### Cómo levantar el frontend (una vez creado)
 
 ```bash
 cd frontend
-npm install
-npm run dev   # Se ejecuta en http://localhost:5173
+pnpm install
+pnpm dev   # http://localhost:5173
 ```
 
 ---
