@@ -40,7 +40,7 @@ const peliculas = computed(() => watchlistStore.watchlist);
             :src="pelicula.imagen"
             :alt="pelicula.nombre"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            @error="(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image'"
+            @error="(e) => { const t = e.target as HTMLImageElement; if (!t.src.includes('placehold.co')) t.src = 'https://placehold.co/300x450/1a1a1a/a855f7?text=Sin+Imagen'; }"
           >
           <button
             @click.stop="watchlistStore.remove(pelicula.id)"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { Film, Users, LogOut } from '@lucide/vue';
 import { Film, Users, LogOut, LayoutGrid } from '@lucide/vue';
 
 const router = useRouter();

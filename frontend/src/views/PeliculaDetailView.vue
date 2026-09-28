@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from '../api';
@@ -120,12 +120,12 @@ const handleAddToList = () => {
     <div class="relative bg-[#1a1a1a] border-b border-[#2a2a2a]">
       <div class="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/80 to-transparent z-10"></div>
       <img :src="pelicula.imagen" class="absolute inset-0 w-full h-full object-cover opacity-20" alt="Banner"
-        @error="(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/1200x400?text=No+Image'">
+        @error="(e) => { const t = e.target as HTMLImageElement; if (!t.src.includes('placehold.co')) t.src = 'https://placehold.co/1200x400/1a1a1a/a855f7?text=Sin+Imagen'; }">
 
       <div class="relative z-20 max-w-7xl mx-auto px-6 py-12 md:py-20 flex flex-col md:flex-row gap-8 md:gap-12 items-start">
         <img :src="pelicula.imagen" :alt="pelicula.nombre"
           class="w-48 md:w-64 rounded-xl shadow-2xl border border-[#3a3a3a] shrink-0"
-          @error="(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image'">
+          @error="(e) => { const t = e.target as HTMLImageElement; if (!t.src.includes('placehold.co')) t.src = 'https://placehold.co/300x450/1a1a1a/a855f7?text=Sin+Imagen'; }">
 
         <div class="flex-grow pt-4">
           <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">{{ pelicula.nombre }}</h1>
