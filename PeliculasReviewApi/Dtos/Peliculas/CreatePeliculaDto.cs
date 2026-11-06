@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using PeliculasReviewApi.Validation;
 
 namespace PeliculasReviewApi.Dtos.Peliculas;
 
@@ -15,7 +16,7 @@ public class CreatePeliculaDto
     public string Nombre { get; set; } = string.Empty;
 
     [Required]
-    [Url]
+    [HttpUrl]
     public string Imagen { get; set; } = string.Empty;
 
     [StringLength(2000)]
