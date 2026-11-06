@@ -6,6 +6,10 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+bin/
+obj/
+.vs/
+*.user
 
 # Variables de entorno — NUNCA se suben
 .env
@@ -15,6 +19,8 @@ build/
 # Base de datos local de SQLite
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 
 # Cliente de Prisma generado (se regenera con prisma generate)
 generated/
