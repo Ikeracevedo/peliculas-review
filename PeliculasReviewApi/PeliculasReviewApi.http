@@ -1,6 +1,41 @@
-@PeliculasReviewApi_HostAddress = http://localhost:5168
+@PeliculasReviewApi_HostAddress = http://localhost:3000
 
-GET {{PeliculasReviewApi_HostAddress}}/weatherforecast/
+GET {{PeliculasReviewApi_HostAddress}}/api/peliculas
 Accept: application/json
+
+###
+
+GET {{PeliculasReviewApi_HostAddress}}/api/peliculas?nombre=the&page=1&limit=5
+Accept: application/json
+
+###
+
+GET {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
+Accept: application/json
+
+###
+
+POST {{PeliculasReviewApi_HostAddress}}/api/peliculas
+Content-Type: application/json
+
+{
+  "nombre": "Dune",
+  "imagen": "https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg",
+  "sinopsis": "Paul Atreides viaja a Arrakis.",
+  "estreno": 2021
+}
+
+###
+
+PATCH {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
+Content-Type: application/json
+
+{
+  "sinopsis": null
+}
+
+###
+
+DELETE {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
 
 ###
