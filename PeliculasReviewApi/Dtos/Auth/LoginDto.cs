@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using PeliculasReviewApi.Validation;
 
 namespace PeliculasReviewApi.Dtos.Auth;
 
@@ -11,7 +12,7 @@ namespace PeliculasReviewApi.Dtos.Auth;
 public class LoginDto
 {
     [Required]
-    [EmailAddress]
+    [StrictEmailAddress]
     public string Correo { get; set; } = string.Empty;
 
     [Required]

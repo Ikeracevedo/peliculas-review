@@ -17,4 +17,13 @@ public class ErrorResponseDto
 
     public static ErrorResponseDto BadRequest(IReadOnlyList<string> messages) =>
         new() { Message = messages, Error = "Bad Request", StatusCode = StatusCodes.Status400BadRequest };
+
+    public static ErrorResponseDto Unauthorized(string message) =>
+        new() { Message = message, Error = "Unauthorized", StatusCode = StatusCodes.Status401Unauthorized };
+
+    public static ErrorResponseDto Forbidden(string message) =>
+        new() { Message = message, Error = "Forbidden", StatusCode = StatusCodes.Status403Forbidden };
+
+    public static ErrorResponseDto Conflict(string message) =>
+        new() { Message = message, Error = "Conflict", StatusCode = StatusCodes.Status409Conflict };
 }
