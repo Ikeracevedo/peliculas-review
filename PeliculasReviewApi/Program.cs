@@ -1,8 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PeliculasReviewApi.Data;
 using PeliculasReviewApi.Dtos.Common;
 using PeliculasReviewApi.Json;
@@ -18,6 +22,77 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IPeliculasService, PeliculasService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsuariosService, UsuariosService>();
+builder.Services.AddScoped<IReviewsService, ReviewsService>();
+
+// Configuración JWT leyendo SecretKey, Issuer y Audience desde appsettings.json.
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtSecretKey = jwtSection["SecretKey"]
+    ?? throw new InvalidOperationException("No se configuró Jwt:SecretKey en appsettings.json.");
+var jwtIssuer = jwtSection["Issuer"];
+var jwtAudience = jwtSection["Audience"];
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ValidateIssuer = !string.IsNullOrWhiteSpace(jwtIssuer),
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = !string.IsNullOrWhiteSpace(jwtAudience),
+            ValidAudience = jwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            NameClaimType = JwtRegisteredClaimNames.Sub,
+            RoleClaimType = "rol",
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                if (context.Response.HasStarted)
+                {
+                    return;
+                }
+
+                // En NestJS AuthGuard:
+                // - Sin "Bearer <token>" -> "No se envio un token de acceso"
+                // - Con "Bearer <token>" inválido o expirado -> "Token invalido o expirado"
+                var mensaje = TieneTokenBearer(context.Request)
+                    ? "Token invalido o expirado"
+                    : "No se envio un token de acceso";
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json; charset=utf-8";
+                await context.Response.WriteAsJsonAsync(
+                    ErrorResponseDto.Unauthorized(mensaje),
+                    context.HttpContext.RequestAborted);
+            },
+            OnForbidden = async context =>
+            {
+                if (context.Response.HasStarted)
+                {
+                    return;
+                }
+
+                // En NestJS RolesGuard: ForbiddenException('No tienes permisos para esta accion')
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json; charset=utf-8";
+                await context.Response.WriteAsJsonAsync(
+                    ErrorResponseDto.Forbidden("No tienes permisos para esta accion"),
+                    context.HttpContext.RequestAborted);
+            },
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers(options =>
     {
@@ -71,10 +146,21 @@ builder.Services.AddControllers(options =>
             }
 
             var mensajes = entradasConError
-                .SelectMany(kvp => kvp.Value!.Errors)
-                .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage)
-                    ? error.Exception?.Message ?? "Invalid value"
-                    : error.ErrorMessage)
+                .SelectMany(kvp => kvp.Value!.Errors.Select(error => (kvp.Key, Error: error)))
+                .Select(item =>
+                {
+                    var raw = string.IsNullOrWhiteSpace(item.Error.ErrorMessage)
+                        ? item.Error.Exception?.Message ?? "Invalid value"
+                        : item.Error.ErrorMessage;
+
+                    if (item.Key is "$.rol" or "rol"
+                        || raw.Contains("PeliculasReviewApi.Models.Rol", StringComparison.Ordinal))
+                    {
+                        return "rol debe ser USUARIO o ADMIN";
+                    }
+
+                    return raw;
+                })
                 .Distinct()
                 .ToList();
 
@@ -126,8 +212,23 @@ else
 
 app.UseCors(CorsPolicyFrontend);
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+static bool TieneTokenBearer(HttpRequest request)
+{
+    var authHeader = request.Headers.Authorization.ToString();
+    if (string.IsNullOrWhiteSpace(authHeader))
+    {
+        return false;
+    }
+
+    var partes = authHeader.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+    return partes.Length == 2
+        && partes[0].Equals("Bearer", StringComparison.OrdinalIgnoreCase)
+        && !string.IsNullOrWhiteSpace(partes[1]);
+}

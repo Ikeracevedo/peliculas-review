@@ -1,21 +1,43 @@
 @PeliculasReviewApi_HostAddress = http://localhost:3000
+@Token = REEMPLAZAR_CON_ACCESS_TOKEN
 
+### Auth: Registro (201)
+POST {{PeliculasReviewApi_HostAddress}}/api/auth/registro
+Content-Type: application/json
+
+{
+  "correo": "nuevo@ejemplo.com",
+  "nombre": "Nuevo Usuario",
+  "password": "Password123!"
+}
+
+### Auth: Login (200)
+POST {{PeliculasReviewApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@ejemplo.com",
+  "password": "Password123!"
+}
+
+### Películas: Listar todas (requiere JWT)
 GET {{PeliculasReviewApi_HostAddress}}/api/peliculas
+Authorization: Bearer {{Token}}
 Accept: application/json
 
-###
-
+### Películas: Búsqueda + Paginación
 GET {{PeliculasReviewApi_HostAddress}}/api/peliculas?nombre=the&page=1&limit=5
+Authorization: Bearer {{Token}}
 Accept: application/json
 
-###
-
+### Películas: Detalle por ID
 GET {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
+Authorization: Bearer {{Token}}
 Accept: application/json
 
-###
-
+### Películas: Crear
 POST {{PeliculasReviewApi_HostAddress}}/api/peliculas
+Authorization: Bearer {{Token}}
 Content-Type: application/json
 
 {
@@ -25,17 +47,37 @@ Content-Type: application/json
   "estreno": 2021
 }
 
-###
-
+### Películas: Actualizar parcialmente
 PATCH {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
+Authorization: Bearer {{Token}}
 Content-Type: application/json
 
 {
   "sinopsis": null
 }
 
-###
-
+### Películas: Eliminar
 DELETE {{PeliculasReviewApi_HostAddress}}/api/peliculas/1
+Authorization: Bearer {{Token}}
 
-###
+### Reviews: Listar todas
+GET {{PeliculasReviewApi_HostAddress}}/api/reviews
+Authorization: Bearer {{Token}}
+Accept: application/json
+
+### Reviews: Crear
+POST {{PeliculasReviewApi_HostAddress}}/api/reviews
+Authorization: Bearer {{Token}}
+Content-Type: application/json
+
+{
+  "titulo": "Obra maestra",
+  "contenido": "Una película inolvidable.",
+  "calificacion": 5,
+  "peliculaId": 1
+}
+
+### Usuarios (solo ADMIN): Listar todos
+GET {{PeliculasReviewApi_HostAddress}}/api/usuarios
+Authorization: Bearer {{Token}}
+Accept: application/json

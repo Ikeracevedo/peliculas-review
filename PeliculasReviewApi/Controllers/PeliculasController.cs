@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PeliculasReviewApi.Dtos.Common;
 using PeliculasReviewApi.Dtos.Peliculas;
@@ -9,27 +10,31 @@ namespace PeliculasReviewApi.Controllers;
 /// Equivalente a <c>PeliculasController</c> de NestJS (<c>@Controller('peliculas')</c> + prefijo global <c>api</c>).
 /// Contrato:
 /// <list type="bullet">
-/// <item><c>POST   /api/peliculas</c>     → 201 + película creada | 400</item>
-/// <item><c>GET    /api/peliculas</c>     → 200 + array de películas (creadaEn desc) | 400 (query inválida)</item>
-/// <item><c>GET    /api/peliculas/{id}</c> → 200 + película | 400 (id no numérico) | 404</item>
-/// <item><c>PATCH  /api/peliculas/{id}</c> → 200 + película actualizada | 400 | 404</item>
-/// <item><c>DELETE /api/peliculas/{id}</c> → 200 + película eliminada | 400 | 404</item>
+/// <item><c>POST   /api/peliculas</c>     → 201 + película creada | 400 | 401</item>
+/// <item><c>GET    /api/peliculas</c>     → 200 + array de películas (creadaEn desc) | 400 | 401</item>
+/// <item><c>GET    /api/peliculas/{id}</c> → 200 + película | 400 | 401 | 404</item>
+/// <item><c>PATCH  /api/peliculas/{id}</c> → 200 + película actualizada | 400 | 401 | 404</item>
+/// <item><c>DELETE /api/peliculas/{id}</c> → 200 + película eliminada | 400 | 401 | 404</item>
 /// </list>
 /// NestJS no expone PUT ni responde 204 en este recurso; se mantiene igual.
 /// </summary>
 /// <remarks>
 /// El id se declara sin restricción <c>:int</c> a propósito: así un id no numérico produce 400
 /// (como <c>ParseIntPipe</c>) en lugar de 404.
-/// En NestJS todas estas rutas exigen JWT (guard global); la autenticación se añade en la Parte 3.
+/// En NestJS <c>AuthGuard</c> es global y <c>PeliculasController</c> no usa <c>@Public()</c>, por lo que
+/// todos los endpoints (incluidos GET y las operaciones de escritura POST/PATCH/DELETE) exigen JWT.
 /// </remarks>
 [ApiController]
 [Route("api/peliculas")]
+[Authorize]
 [Produces("application/json")]
+[ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
 public class PeliculasController(IPeliculasService peliculasService) : ControllerBase
 {
     private const string MensajeNoExiste = "No existe una pelicula con ese id";
 
     [HttpPost]
+    [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PeliculaResponseDto>> Create(
@@ -76,6 +81,7 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
     }
 
     [HttpPatch("{id}")]
+    [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
@@ -90,6 +96,7 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
 
     /// <remarks>NestJS devuelve 200 con el registro eliminado (no 204); se replica.</remarks>
     [HttpDelete("{id}")]
+    [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
