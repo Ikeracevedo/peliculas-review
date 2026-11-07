@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using PeliculasReviewApi.Data;
 using PeliculasReviewApi.Dtos.Common;
 using PeliculasReviewApi.Json;
@@ -187,8 +188,51 @@ builder.Services.AddCors(options =>
         .WithExposedHeaders("Location", "X-Total-Count", "X-Page", "X-Limit", "X-Total-Pages"));
 });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Configuración de Swagger / OpenAPI con soporte de autenticación JWT Bearer (botón "Authorize").
+var bearerSecurityScheme = new OpenApiSecurityScheme
+{
+    Name = "Authorization",
+    Type = SecuritySchemeType.Http,
+    Scheme = "bearer",
+    BearerFormat = "JWT",
+    In = ParameterLocation.Header,
+    Description = "Ingresa el token JWT obtenido en /api/auth/login o /api/auth/registro (sin el prefijo 'Bearer ').",
+};
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = bearerSecurityScheme;
+
+        document.Security ??= [];
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+        });
+
+        return Task.CompletedTask;
+    });
+});
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Películas Review API",
+        Version = "v1",
+        Description = "API REST en ASP.NET Core Web API para reseñas de películas (migración desde NestJS).",
+    });
+
+    options.AddSecurityDefinition("Bearer", bearerSecurityScheme);
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+    });
+});
 
 var app = builder.Build();
 
@@ -199,13 +243,17 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
-else
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Películas Review API v1");
+    options.DocumentTitle = "Películas Review API - Swagger UI";
+});
+app.MapOpenApi();
+
+if (!app.Environment.IsDevelopment())
 {
-    // En desarrollo el front llama por HTTP (http://localhost:3000/api); una redirección 307 a HTTPS
+    // En desarrollo el front llama por HTTP (http://localhost:5000/api); una redirección 307 a HTTPS
     // rompería las peticiones preflight de CORS.
     app.UseHttpsRedirection();
 }
