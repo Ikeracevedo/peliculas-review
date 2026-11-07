@@ -1,4 +1,4 @@
-@PeliculasReviewApi_HostAddress = http://localhost:3000
+@PeliculasReviewApi_HostAddress = http://localhost:5000
 @Token = REEMPLAZAR_CON_ACCESS_TOKEN
 
 ### Auth: Registro (201)

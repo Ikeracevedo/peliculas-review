@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/auth';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   withCredentials: true,
 });
 
@@ -20,7 +20,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const authStore = useAuthStore();
       authStore.logout();
-      window.location.href = '/login'; // Force redirect and clear state
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'; // Force redirect and clear state
+      }
     }
     return Promise.reject(error);
   }
