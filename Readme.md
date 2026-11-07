@@ -1,22 +1,20 @@
-﻿<div align="center">
+<div align="center">
   <img src="docs/logo-upb.png" alt="Universidad Pontificia Bolivariana" width="340"/>
 
-  <h1>Reseñas de Películas</h1>
+  <h1>CineVault — Reseñas de Películas (Migración a ASP.NET Core Web API)</h1>
 
-  <p>Una comunidad para explorar un catálogo de películas, lee lo que<br>
-  otros usuarios opinan y comparte tu propia calificación y reseña de cada una.<br>
-  Cada usuario se registra, inicia sesión y gestiona sus propias reseñas —<br>
-  crearlas, editarlas o eliminarlas — con su sesión protegida mediante JWT.</p>
+  <p>Plataforma comunitaria para explorar un catálogo de películas, consultar las opiniones de otros usuarios y compartir calificaciones y reseñas.<br>
+  Cada usuario puede registrarse, iniciar sesión y gestionar sus propias reseñas —crearlas, editarlas o eliminarlas— con su sesión protegida mediante <strong>JWT</strong>.</p>
 
-  <p><sub>Arquitectura cliente-servidor desacoplada: SPA en Vue + API REST stateless en NestJS.</sub></p>
+  <p><sub>Arquitectura cliente-servidor desacoplada: SPA en Vue 3 + API REST stateless migrada de NestJS a <strong>ASP.NET Core Web API</strong> con Entity Framework Core y SQLite.</sub></p>
 
   <p>
-    <img src="https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white" />
-    <img src="https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white" />
-    <img src="https://img.shields.io/badge/SQLite-database-003B57?logo=sqlite&logoColor=white" />
+    <img src="https://img.shields.io/badge/.NET-ASP.NET%20Core%20Web%20API-512BD4?logo=dotnet&logoColor=white" />
+    <img src="https://img.shields.io/badge/EF%20Core-SQLite-003B57?logo=sqlite&logoColor=white" />
+    <img src="https://img.shields.io/badge/JWT-Bearer%20Auth-000000?logo=jsonwebtokens&logoColor=white" />
+    <img src="https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger&logoColor=black" />
     <img src="https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js&logoColor=white" />
-    <img src="https://img.shields.io/badge/JWT-auth-000000?logo=jsonwebtokens&logoColor=white" />
-    <img src="https://img.shields.io/badge/pnpm-package%20manager-F69220?logo=pnpm&logoColor=white" />
+    <img src="https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white" />
   </p>
 
   <p><strong>Plataforma de Programación Empresarial — Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana</strong></p>
@@ -24,271 +22,209 @@
 
 ---
 
-## ¿Qué puedes hacer?
+## 📋 Descripción del Proyecto (Migración de NestJS a ASP.NET Core)
 
-El objetivo es crear una comunidad para:
+Este proyecto consiste en la **migración completa del backend** de la plataforma de reseñas de películas **CineVault**, reemplazando la API original construida en **NestJS + Prisma** por una nueva implementación en **ASP.NET Core Web API + Entity Framework Core + SQLite** (`PeliculasReviewApi`), manteniendo **100% de compatibilidad de contrato** con el cliente existente en **Vue 3** (`frontend`).
 
-- 🔎 **Explorar** un catálogo de películas con imagen, nombre y año de estreno.
-- ✍️ **Reseñar** cualquier película: título, contenido y una calificación de 1 a 5.
-- 👤 **Registrarse e iniciar sesión** de forma segura (contraseña hasheada, sesión con JWT).
-- ✏️ **Editar o eliminar** únicamente sus propias reseñas — nunca las de otro usuario. Un `ADMIN` sí puede moderar cualquiera.
-- 📖 **Leer** las reseñas de todos, con el nombre del autor y la película asociada.
+### Aspectos clave garantizados en la migración
+
+1. **Contrato HTTP idéntico**: Mismas rutas bajo el prefijo `/api` (`/api/auth`, `/api/peliculas`, `/api/reviews`, `/api/usuarios`), mismos verbos HTTP (`GET`, `POST`, `PATCH`/`PUT`, `DELETE`), mismos códigos de estado (`200`, `201`, `400`, `401`, `403`, `404`, `409`) y misma estructura de payloads y errores JSON.
+2. **Serialización JSON en `camelCase` y Enums como texto**: Configurada globalmente con `JsonNamingPolicy.CamelCase` y `JsonStringEnumConverter` para que el enum `Rol` se serialice y deserialice exactamente como `"USUARIO"` o `"ADMIN"`, y el token de autenticación se entregue en la propiedad `access_token`.
+3. **Búsqueda y paginación**: Implementadas en `GET /api/peliculas` y `GET /api/reviews` mediante parámetros de consulta opcionales (`nombre`/`search`, `page`, `limit`/`pageSize`), exponiendo los metadatos en las cabeceras `X-Total-Count`, `X-Page`, `X-Limit` y `X-Total-Pages` sin alterar el arreglo plano esperado por el frontend.
+4. **Política de CORS para Vue**: Configurada en `Program.cs` (`FrontendVue`) permitiendo el origen del cliente Vite (`http://localhost:5173`), credenciales (`AllowCredentials`), todos los encabezados y métodos HTTP.
+5. **Seguridad con BCrypt y JWT**:
+   - Contraseñas hasheadas con **BCrypt.Net-Next** (`workFactor: 10`) antes de persistirse en SQLite.
+   - Emisión de tokens **JWT firmados con HMAC-SHA256** (`sub`, `correo`, `rol`, `iat`, `exp`).
+   - Endpoints de lectura (`GET /api/peliculas`, `GET /api/reviews`) de acceso público y endpoints de escritura (`POST`, `PUT`, `PATCH`, `DELETE`) protegidos con `[Authorize]`.
+   - Control de propiedad (*ownership*) en reseñas (solo el autor o un `ADMIN` puede editar/eliminar) y panel `/api/usuarios` restringido a `[Authorize(Roles = "ADMIN")]`.
+6. **Swagger / OpenAPI con botón "Authorize"**: Documentación interactiva en `/swagger` configurada con `AddSecurityDefinition` y `AddSecurityRequirement` para probar endpoints protegidos pegando el token JWT directamente en la interfaz gráfica.
 
 ---
 
-## Tecnologías
+## 🛠️ Tecnologías
 
 | Capa | Tecnología | Rol |
 |---|---|---|
-| Backend | NestJS 12 (TypeScript, CommonJS) | API REST |
-| ORM | Prisma 7 (driver adapter `better-sqlite3`) | Acceso a datos tipado |
-| Base de datos | SQLite | Persistencia local, sin servidor externo |
-| Autenticación | `@nestjs/jwt` + `bcrypt` | Sesión stateless con tokens firmados |
-| Frontend | Vue 3 + Vite | SPA que consume la API |
-| Gestor de paquetes | pnpm | Instalación estricta, sin dependencias fantasma |
+| **Backend** | ASP.NET Core Web API (C#) | API REST stateless |
+| **ORM** | Entity Framework Core (`Microsoft.EntityFrameworkCore.Sqlite`) | Modelado de datos, migraciones y consultas LINQ |
+| **Base de datos** | SQLite (`peliculas.db`) | Persistencia relacional local sin servidor externo |
+| **Autenticación** | `Microsoft.AspNetCore.Authentication.JwtBearer` + `BCrypt.Net-Next` | Hash de contraseñas y sesiones con JWT firmado |
+| **Documentación API** | `Swashbuckle.AspNetCore` (Swagger UI + OpenAPI) | Explorador interactivo con autenticación Bearer |
+| **Frontend** | Vue 3 (`<script setup>`) + Vite + Pinia + Vue Router + Axios + Tailwind CSS | Single Page Application (SPA) |
 
 ---
 
-## Arquitectura
+## 📂 Estructura del Repositorio
 
-El proyecto es un **monorepo de dos carpetas hermanas**, sin herramienta de monorepo (no comparten dependencias, así que no la necesitan):
-
-```
+```text
 peliculas-review/
-├── backend/     # API REST en NestJS
-└── frontend/    # SPA en Vue — consume la API, ver sección Frontend
-```
-
-### Por qué esta arquitectura
-
-- **Cliente-servidor desacoplado**: el backend nunca devuelve HTML, solo JSON. El frontend arma toda la vista en el navegador (SPA).
-- **HTTP es stateless**: cada petición llega sin memoria de la anterior. La sesión se resuelve con **JWT**, no con cookies de sesión en el servidor — así el backend no necesita guardar estado entre peticiones.
-- **Backend en capas** (dentro de cada módulo):
-
-  ```
-  HTTP Request
-      ↓
-  Controller   → solo sabe de HTTP: rutas, status codes, DTOs de entrada/salida
-      ↓
-  Service      → reglas de negocio, no sabe que existe HTTP
-      ↓
-  PrismaService → acceso a datos, una sola instancia para toda la app (@Global)
-      ↓
-  SQLite
-  ```
-
----
-
-## Frontend — guía para el equipo
-
-El frontend fue desarrollado como una **Single Page Application (SPA)** moderna, reactiva y responsive con un diseño oscuro (*Dark Mode*) de alta estética cinematográfica (*CineVault*).
-
-### Tecnologías Utilizadas
-
-- **Vue 3** (`<script setup>` + Composition API): Reactividad y estructura modular de componentes.
-- **Vite**: Bundler ultra-rápido para desarrollo e integración HMR (Hot Module Replacement).
-- **Vue Router 4**: Enrutamiento declarativo con *Navigation Guards* para la protección de rutas privadas y administrativas (`/admin/*`).
-- **Pinia**: Gestión del estado global de autenticación (`useAuthStore`) con persistencia en `localStorage`.
-- **Axios**: Cliente HTTP configurado con interceptores globales para inyectar automáticamente el encabezado `Authorization: Bearer <token>` y gestionar deslogueos automáticos ante respuestas `401 Unauthorized`.
-- **Tailwind CSS**: Estilizado utility-first personalizado con gradientes de neón, desenfoques (*backdrop-blur*) y diseño adaptable.
-- **Lucide Vue Icons**: Iconografía vectorizada para componentes de la interfaz.
-
----
-
-### Arquitectura del Frontend
-
-La estructura del código en `frontend/src/` está organizada por responsabilidades desacopladas:
-
-```
-frontend/src/
-├── api/             # Instancia central de Axios e Interceptores HTTP
-├── assets/          # Estilos globales y utilidades CSS (Tailwind)
-├── components/      # Componentes UI reutilizables
-├── layouts/         # Plantillas de estructura (MainLayout y AdminLayout)
-├── router/          # Configuración de rutas y guards de navegación (Auth & Admin)
-├── stores/          # Estado global con Pinia (authStore)
-├── types/           # Interfaces TypeScript unificadas (Usuario, Pelicula, Review)
-└── views/           # Vistas / Páginas de la aplicación
+├── PeliculasReviewApi/          # Nuevo Backend en ASP.NET Core Web API
+│   ├── Controllers/             # Controladores REST (Auth, Peliculas, Reviews, Usuarios, App)
+│   ├── Data/                    # AppDbContext, DbSeeder (seed automático) e interceptores SQLite
+│   ├── Dtos/                    # DTOs de entrada/salida y consultas paginadas
+│   ├── Migrations/              # Migraciones de Entity Framework Core
+│   ├── Models/                  # Entidades del dominio (Usuario, Pelicula, Review, Rol)
+│   ├── Services/                # Lógica de negocio desacoplada por módulo
+│   ├── Validation/              # Validadores personalizados y metadatos camelCase
+│   ├── appsettings.json         # Cadena de conexión SQLite, configuración JWT y orígenes CORS
+│   └── Program.cs               # Configuración de DI, EF Core, JWT, JSON, CORS, Swagger y pipeline HTTP
+├── frontend/                    # Cliente SPA en Vue 3 + Vite (CineVault)
+│   ├── src/
+│   │   ├── api/index.ts         # Instancia Axios e interceptores JWT
+│   │   ├── router/              # Rutas y Navigation Guards
+│   │   ├── stores/              # Estado global con Pinia (auth, watchlist)
+│   │   ├── types/               # Interfaces TypeScript
+│   │   └── views/               # Vistas de catálogo, detalle, login/registro y administración
+│   ├── .env                     # Variable VITE_API_URL apuntando al backend .NET
+│   └── .env.example             # Plantilla de variables de entorno del frontend
+└── backend/                     # Backend original de referencia en NestJS
 ```
 
 ---
 
-### Explicación del Uso de CRUD en la Interfaz
+## ✅ Requisitos Previos
 
-La aplicación implementa las operaciones **CRUD** (Create, Read, Update, Delete) de forma completa e interactiva para las tres entidades del dominio:
+Antes de ejecutar el proyecto, asegúrate de tener instalado en tu equipo:
 
-#### 1. Películas (`/peliculas` y `/admin/peliculas`)
-- **Read (Lectura)**:
-  - **Catálogo Principal (`/peliculas`)**: Todos los usuarios pueden explorar el catálogo paginado, filtrar por título en tiempo real desde la barra de búsqueda del *Hero Section* y seleccionar una película para ver sus detalles.
-  - **Detalle de Película (`/peliculas/:id`)**: Muestra la información completa de la película (banner, sinopsis, año de estreno, calificación promedio de usuarios y botón para tráiler).
-- **Create / Update / Delete (Escritura y Gestión)**:
-  - **Panel de Administración (`/admin/peliculas`)**: Exclusivo para usuarios con rol `ADMIN`. Permite crear nuevas películas, editar su título, año de estreno e imagen, o eliminarlas mediante modales interactivos integrados a la API.
-
-#### 2. Reseñas / Reviews (`/peliculas/:id`)
-- **Create (Creación)**:
-  - Cualquier usuario autenticado puede presionar **"Write a Review"** en la página de detalle de una película. Se despliega un formulario para ingresar un título, contenido y una calificación de 1 a 5 estrellas. El backend asigna la autoría automáticamente a través del token JWT enviado.
-- **Read (Lectura)**:
-  - En la vista de detalle de cada película se despliega el listado de reseñas publicadas por la comunidad, mostrando las estrellas de calificación, la fecha y el avatar/nombre del autor.
-- **Update (Edición) y Delete (Eliminación)**:
-  - **Control de Propiedad (*Ownership*)**: Cada usuario ve los botones **"Edit"** y **"Delete"** **únicamente en sus propias reseñas**. Al hacer clic en *Edit*, el formulario se rellena automáticamente para actualizar la opinión.
-  - **Moderación**: Un usuario con rol `ADMIN` visualiza los botones de edición y eliminación en **todas** las reseñas para fines de moderación de contenido.
-
-#### 3. Usuarios (`/admin/usuarios`)
-- **Read (Lectura)**:
-  - **Gestión de Usuarios (`/admin/usuarios`)**: Vista administrativa donde se visualiza una tabla con todos los usuarios registrados en la plataforma, su correo, rol asignado (`USUARIO` o `ADMIN`), estado (*Active*) y fecha de registro. Incluye filtro por roles e insensible a mayúsculas/minúsculas para búsquedas por nombre o correo.
-- **Update (Actualización) y Delete (Eliminación)**:
-  - Desde la misma tabla administrativa, un `ADMIN` puede modificar el rol de un usuario o eliminarlo del sistema mediante diálogos de confirmación.
+1. **.NET SDK** (.NET 8.0 SDK o superior; proyecto configurado y probado sobre .NET SDK 8/9/10).
+   - Verificar instalación:
+     ```bash
+     dotnet --version
+     ```
+2. **Herramienta CLI de Entity Framework Core (`dotnet-ef`)** (para ejecutar comandos de migración manualmente):
+   ```bash
+   dotnet tool install --global dotnet-ef
+   ```
+   *(Si ya la tienes instalada, puedes actualizarla con `dotnet tool update --global dotnet-ef`).*
+3. **Node.js** (v18 o superior) y **npm** o **pnpm** (para ejecutar el cliente de Vue).
 
 ---
 
-### Autenticación y Seguridad
+## 🚀 Paso a Paso: Levantar el Backend (ASP.NET Core Web API)
 
-- **Registro (`/registro`) y Login (`/login`)**: Vistas dedicadas con validaciones de formulario. Al autenticarse correctamente, el servidor retorna el `access_token` JWT y la información del usuario, los cuales se almacenan en el `authStore` de Pinia.
-- **Protección de Rutas (*Guards*)**: Si un usuario no autenticado intenta ingresar a `/peliculas` o `/admin`, el router lo redirige a `/login`. Si un usuario con rol `USUARIO` intenta acceder a rutas `/admin/*`, es redirigido automáticamente al catálogo general.
+### 1. Ubicarse en la carpeta del proyecto .NET y restaurar paquetes
+
+```bash
+cd PeliculasReviewApi
+dotnet restore
+```
+
+### 2. Aplicar las migraciones de Entity Framework Core en SQLite
+
+Ejecuta el siguiente comando para crear la base de datos local `peliculas.db` y aplicar el esquema de tablas (`Usuarios`, `Peliculas`, `Reviews`):
+
+```bash
+dotnet ef database update
+```
+
+> 💡 **Nota sobre datos de prueba (Seed automático)**: Al iniciar la aplicación, `DbSeeder.SeedAsync` ejecuta automáticamente `Database.MigrateAsync()` y, si la base de datos está vacía, inserta los **2 usuarios de prueba** y el **catálogo inicial de 20 películas**.
+
+### 3. Iniciar el servidor de la API
+
+```bash
+dotnet run
+```
+
+La API quedará escuchando en:
+- **URL Base de la API**: `http://localhost:5000/api`
+- **Interfaz gráfica Swagger UI**: `http://localhost:5000/swagger`
+- **Documento OpenAPI JSON**: `http://localhost:5000/swagger/v1/swagger.json`
+
+### 4. Probar la autenticación JWT desde Swagger UI
+
+1. Abre `http://localhost:5000/swagger` en tu navegador.
+2. Ejecuta `POST /api/auth/login` con las credenciales de prueba (por ejemplo, `admin@ejemplo.com` / `Password123!`).
+3. Copia el valor de `access_token` de la respuesta.
+4. Haz clic en el botón **"Authorize"** (arriba a la derecha en Swagger UI), pega el token en el campo **Value** y pulsa **Authorize**.
+5. Ahora podrás probar todos los endpoints protegidos (`POST`, `PUT`, `PATCH`, `DELETE` y `/api/usuarios`).
 
 ---
 
-### Cómo conectarse a la API
+## 🔗 Configuración y Conexión del Frontend de Vue
 
-- Base URL en desarrollo: `http://localhost:3000/api`
-- CORS ya está habilitado para `http://localhost:5173` (puerto por defecto de Vite). Si usan otro puerto, avisar para agregarlo en `backend/src/main.ts`.
-- Formato de error de validación: `400 Bad Request` con el detalle de qué campo falló.
+Para conectar el cliente de Vue al nuevo backend en ASP.NET Core en lugar del servidor anterior de NestJS (que usaba el puerto `3000`), se debe configurar la variable de entorno **`VITE_API_URL`** en el archivo `frontend/.env`.
 
-### Autenticación — cómo funciona (ya está lista, no es temporal)
+### 1. Configurar la variable de entorno en `frontend/.env`
 
-Casi todos los endpoints requieren sesión. Las únicas rutas públicas son `POST /auth/registro` y `POST /auth/login` — todo lo demás responde `401 Unauthorized` sin un token válido.
+Crea o edita el archivo `frontend/.env` en la raíz de la carpeta `frontend/` con el siguiente contenido explícito:
 
-1. Te registras (`/auth/registro`) o inicias sesión (`/auth/login`).
-2. La respuesta trae `access_token` (un JWT). Guárdalo en el cliente (`localStorage`, una store de Pinia, etc.).
-3. En cada petición protegida, lo mandas en el header: `Authorization: Bearer <access_token>`.
-4. El token expira en 1 hora — pasado ese tiempo cualquier petición da `401` y hay que volver a hacer login.
-5. `/usuarios` además exige rol `ADMIN`: con token válido pero sin ese rol, responde `403 Forbidden` en vez de `401`.
-6. El endpoint de reseñas (`POST /reviews`) **ya no pide `autorId` en el body** — el autor sale automáticamente del token.
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
-Usa las credenciales del seed para probar sin registrarte: `ana@ejemplo.com` / `Password123!` (usuario normal) o `admin@ejemplo.com` / `Password123!` (administrador).
+*(En `frontend/src/api/index.ts`, Axios lee `import.meta.env.VITE_API_URL` para dirigir todas las peticiones HTTP hacia `http://localhost:5000/api`).*
 
-📖 Ejemplo de `fetch` con login + petición protegida, y el detalle completo de cada endpoint (body, respuestas, errores), en [`backend/docs/API.md`](backend/docs/API.md) — léelo antes de tipar los modelos en el front.
+### 2. Instalar dependencias y levantar el cliente Vue
 
-### Cómo levantar el frontend (una vez creado)
+En una nueva terminal, ejecuta:
 
 ```bash
 cd frontend
-pnpm install
-pnpm dev   # http://localhost:5173
+npm install
+npm run dev
 ```
+*(O con pnpm: `pnpm install && pnpm dev`).*
+
+El cliente de Vue estará disponible en:
+- **Frontend (Vite)**: `http://localhost:5173`
 
 ---
 
-## Backend — cómo funciona
+## 🔑 Credenciales de Prueba (Seed Inicial)
 
-### Estructura
-
-```
-backend/
-├── prisma/
-│   ├── schema.prisma       # Modelos: Usuario, Pelicula, Review
-│   ├── migrations/         # Historial versionado de cambios a la base
-│   └── seed.ts             # 2 usuarios + 20 películas de prueba
-├── src/
-│   ├── prisma/             # PrismaModule (@Global) + PrismaService
-│   ├── usuarios/           # Persistencia + CRUD de administración (solo ADMIN)
-│   ├── auth/               # Registro, login, JWT, guards, decoradores
-│   ├── peliculas/          # CRUD de películas
-│   ├── reviews/            # CRUD de reseñas (con ownership)
-│   ├── app.module.ts
-│   └── main.ts             # Bootstrap: CORS, prefijo /api, ValidationPipe global
-├── requests/                # Archivos .http para probar la API desde VS Code
-├── docs/                    # Documentación de la API para el equipo (ver docs/API.md)
-└── prisma7.config.ts        # Config de Prisma (migraciones, seed)
-```
-
-### Decisiones clave (por si el equipo se pregunta "por qué así")
-
-- **`PrismaModule` es `@Global()`**: una sola conexión a SQLite para toda la app. Si cada módulo declarara su propio `PrismaService`, tendríamos múltiples conexiones abriéndose a la misma base — un antipatrón real en Nest.
-- **Guard global de autenticación**: toda la API exige JWT salvo `/auth/registro` y `/auth/login`. Las rutas públicas se marcan explícitamente con `@Public()`.
-- **`usuarios/` es solo para administración**: no hay endpoint público de registro/listado de usuarios ahí — eso vive en `auth/`. `GET/PATCH/DELETE /usuarios` requieren rol `ADMIN`.
-- **Ownership en reviews**: un usuario con rol `USUARIO` solo puede editar o borrar sus propias reseñas; un `ADMIN` puede moderar cualquiera. El `autorId` nunca viaja en el body — sale del JWT, para que nadie pueda publicar reseñas fingiendo ser otro usuario.
-- **Todo el schema en español** (`Usuario`, `Pelicula`), con `Review` en inglés a propósito — decisión consciente del equipo, no inconsistencia.
-- **`ValidationPipe` global** con `whitelist: true`: cualquier campo que el cliente mande y no esté declarado en el DTO se descarta automáticamente (evita mass assignment).
-
-### Variables de entorno (`backend/.env`, no se sube a git)
-
-```bash
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="<cadena aleatoria larga — generar con: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">"
-JWT_EXPIRES_IN="3600"
-```
-
-### Cómo levantar el backend
-
-```bash
-cd backend
-pnpm install
-pnpm exec prisma migrate dev   # crea/actualiza dev.db según prisma/schema.prisma
-pnpm exec prisma db seed       # crea una base para trabajar con datos de prueba
-pnpm start:dev                 # Ruta http://localhost:3000/api
-```
-
-### Scripts útiles
-
-```bash
-pnpm start:dev            # servidor con recarga automática
-pnpm build                # compila a dist/
-pnpm test                 # tests unitarios (vitest)
-pnpm test:e2e             # tests end-to-end
-pnpm exec prisma studio   # explorador visual de la base de datos
-```
+| Rol | Correo | Contraseña | Permisos |
+|---|---|---|---|
+| **Usuario estándar (`USUARIO`)** | `ana@ejemplo.com` | `Password123!` | Explorar catálogo, publicar reseñas y editar/eliminar sus propias reseñas |
+| **Administrador (`ADMIN`)** | `admin@ejemplo.com` | `Password123!` | Todo lo anterior + CRUD de películas (`/admin/peliculas`), moderación de cualquier reseña y gestión de usuarios (`/admin/usuarios`) |
 
 ---
 
-## Endpoints principales
+## 📡 Resumen de Endpoints de la API
 
-> Detalle completo de cada endpoint (body, respuestas, errores) en [`backend/docs/API.md`](backend/docs/API.md).
+### Autenticación (`/api/auth`)
 
-### Autenticación — `/auth`
-
-| Método | Ruta | Requiere | Descripción |
+| Verbo | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| POST | `/api/auth/registro` | — | Registrar usuario (rol `USUARIO` por defecto) |
-| POST | `/api/auth/login` | — | Iniciar sesión, obtener `access_token` (JWT) |
+| `POST` | `/api/auth/registro` | Público | Registra un nuevo usuario (contraseña hasheada con BCrypt, rol `USUARIO` por defecto) y retorna `{ usuario, access_token }`. |
+| `POST` | `/api/auth/login` | Público | Valida credenciales y retorna `{ usuario, access_token }` firmado con JWT. |
 
-### Películas — `/peliculas`
+### Películas (`/api/peliculas`)
 
-| Método | Ruta | Requiere | Descripción |
+| Verbo | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| POST | `/api/peliculas` | 🔒 Token | Crear película |
-| GET | `/api/peliculas` | 🔒 Token | Listar películas |
-| GET | `/api/peliculas/:id` | 🔒 Token | Obtener película |
-| PATCH | `/api/peliculas/:id` | 🔒 Token | Actualizar película |
-| DELETE | `/api/peliculas/:id` | 🔒 Token | Eliminar película |
+| `GET` | `/api/peliculas` | Público | Lista películas ordenadas por `creadaEn` desc. Soporta `?nombre=`, `?search=`, `?page=` y `?limit=`/`?pageSize=`. |
+| `GET` | `/api/peliculas/{id}` | Público | Obtiene el detalle de una película por su ID. |
+| `POST` | `/api/peliculas` | 🔒 `[Authorize]` | Crea una nueva película. |
+| `PATCH` / `PUT` | `/api/peliculas/{id}` | 🔒 `[Authorize]` | Actualiza los datos de una película existente. |
+| `DELETE` | `/api/peliculas/{id}` | 🔒 `[Authorize]` | Elimina una película y sus reseñas asociadas en cascada. |
 
-### Reseñas — `/reviews`
+### Reseñas (`/api/reviews`)
 
-| Método | Ruta | Requiere | Descripción |
+| Verbo | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| POST | `/api/reviews` | 🔒 Token | Crear reseña (el autor sale del token, no del body) |
-| GET | `/api/reviews` | 🔒 Token | Listar reseñas (con película y autor anidados) |
-| GET | `/api/reviews/:id` | 🔒 Token | Obtener reseña |
-| PATCH | `/api/reviews/:id` | 🔒 Token + dueño | Actualizar reseña propia |
-| DELETE | `/api/reviews/:id` | 🔒 Token + dueño | Eliminar reseña propia |
+| `GET` | `/api/reviews` | Público | Lista reseñas con `pelicula` y `autor` anidados. Soporta `?nombre=`, `?search=`, `?titulo=`, `?peliculaId=`, `?autorId=`, `?page=` y `?limit=`/`?pageSize=`. |
+| `GET` | `/api/reviews/{id}` | Público | Obtiene una reseña por su ID con `pelicula` y `autor`. |
+| `POST` | `/api/reviews` | 🔒 `[Authorize]` | Crea una reseña asociando automáticamente el `autorId` desde el claim `sub` del JWT. |
+| `PATCH` / `PUT` | `/api/reviews/{id}` | 🔒 `[Authorize]` (Autor o `ADMIN`) | Actualiza una reseña (valida propiedad o rol `ADMIN`). |
+| `DELETE` | `/api/reviews/{id}` | 🔒 `[Authorize]` (Autor o `ADMIN`) | Elimina una reseña (valida propiedad o rol `ADMIN`). |
 
-### Usuarios — `/usuarios` (administración)
+### Usuarios (`/api/usuarios`)
 
-| Método | Ruta | Requiere | Descripción |
+| Verbo | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| GET | `/api/usuarios` | 🔒 Token + 🔐 rol `ADMIN` | Listar usuarios |
-| GET | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Obtener usuario |
-| PATCH | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Actualizar usuario (incluye cambiar rol) |
-| DELETE | `/api/usuarios/:id` | 🔒 Token + 🔐 rol `ADMIN` | Eliminar usuario |
+| `GET` | `/api/usuarios` | 🔒 `[Authorize(Roles = "ADMIN")]` | Lista todos los usuarios registrados (sin exponer `password`). |
+| `GET` | `/api/usuarios/{id}` | 🔒 `[Authorize(Roles = "ADMIN")]` | Obtiene un usuario por su ID. |
+| `PATCH` / `PUT` | `/api/usuarios/{id}` | 🔒 `[Authorize(Roles = "ADMIN")]` | Actualiza nombre, correo o rol (`USUARIO` / `ADMIN`) de un usuario. |
+| `DELETE` | `/api/usuarios/{id}` | 🔒 `[Authorize(Roles = "ADMIN")]` | Elimina un usuario y sus reseñas en cascada. |
 
 ---
 
-## Equipo
+## 👥 Equipo
 
 | Integrante |
 |---|
 | Iker Acevedo |
 | Jose Mejía |
 
-Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana
+Ingeniería de Sistemas e Informática · Universidad Pontificia Bolivariana  
 Plataforma de Programación Empresarial
