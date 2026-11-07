@@ -1,3 +1,4 @@
+using PeliculasReviewApi.Dtos.Common;
 using PeliculasReviewApi.Dtos.Reviews;
 using PeliculasReviewApi.Models;
 
@@ -29,7 +30,8 @@ public interface IReviewsService
         int autorId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ReviewResponseDto>> FindAllAsync(
+    Task<PagedResult<ReviewResponseDto>> FindAllAsync(
+        ReviewsQueryDto? query = null,
         CancellationToken cancellationToken = default);
 
     Task<ReviewResponseDto?> FindOneAsync(

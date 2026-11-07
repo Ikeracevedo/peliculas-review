@@ -45,6 +45,8 @@ public class UsuariosController(IUsuariosService usuariosService) : ControllerBa
     }
 
     [HttpPatch("{id}")]
+    [HttpPut("{id}")]
+    [Authorize(Roles = nameof(Rol.ADMIN))]
     [ProducesResponseType<UsuarioResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
@@ -64,6 +66,7 @@ public class UsuariosController(IUsuariosService usuariosService) : ControllerBa
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = nameof(Rol.ADMIN))]
     [ProducesResponseType<UsuarioResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]

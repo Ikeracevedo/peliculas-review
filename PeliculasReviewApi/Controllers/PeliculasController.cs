@@ -10,25 +10,23 @@ namespace PeliculasReviewApi.Controllers;
 /// Equivalente a <c>PeliculasController</c> de NestJS (<c>@Controller('peliculas')</c> + prefijo global <c>api</c>).
 /// Contrato:
 /// <list type="bullet">
-/// <item><c>POST   /api/peliculas</c>     → 201 + película creada | 400 | 401</item>
-/// <item><c>GET    /api/peliculas</c>     → 200 + array de películas (creadaEn desc) | 400 | 401</item>
-/// <item><c>GET    /api/peliculas/{id}</c> → 200 + película | 400 | 401 | 404</item>
-/// <item><c>PATCH  /api/peliculas/{id}</c> → 200 + película actualizada | 400 | 401 | 404</item>
-/// <item><c>DELETE /api/peliculas/{id}</c> → 200 + película eliminada | 400 | 401 | 404</item>
+/// <item><c>POST   /api/peliculas</c>      → 201 + película creada | 400 | 401 (protegido con <c>[Authorize]</c>)</item>
+/// <item><c>GET    /api/peliculas</c>      → 200 + array de películas (creadaEn desc) | 400 (lectura pública)</item>
+/// <item><c>GET    /api/peliculas/{id}</c> → 200 + película | 400 | 404 (lectura pública)</item>
+/// <item><c>PATCH  /api/peliculas/{id}</c> → 200 + película actualizada | 400 | 401 | 404 (protegido con <c>[Authorize]</c>)</item>
+/// <item><c>PUT    /api/peliculas/{id}</c> → 200 + película actualizada | 400 | 401 | 404 (protegido con <c>[Authorize]</c>)</item>
+/// <item><c>DELETE /api/peliculas/{id}</c> → 200 + película eliminada | 400 | 401 | 404 (protegido con <c>[Authorize]</c>)</item>
 /// </list>
-/// NestJS no expone PUT ni responde 204 en este recurso; se mantiene igual.
 /// </summary>
 /// <remarks>
 /// El id se declara sin restricción <c>:int</c> a propósito: así un id no numérico produce 400
 /// (como <c>ParseIntPipe</c>) en lugar de 404.
-/// En NestJS <c>AuthGuard</c> es global y <c>PeliculasController</c> no usa <c>@Public()</c>, por lo que
-/// todos los endpoints (incluidos GET y las operaciones de escritura POST/PATCH/DELETE) exigen JWT.
+/// Los endpoints de lectura (<c>GET</c>) son públicos y los de escritura (<c>POST</c>, <c>PATCH</c>, <c>PUT</c>, <c>DELETE</c>)
+/// llevan <c>[Authorize]</c>.
 /// </remarks>
 [ApiController]
 [Route("api/peliculas")]
-[Authorize]
 [Produces("application/json")]
-[ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
 public class PeliculasController(IPeliculasService peliculasService) : ControllerBase
 {
     private const string MensajeNoExiste = "No existe una pelicula con ese id";
@@ -37,6 +35,7 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
     [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PeliculaResponseDto>> Create(
         [FromBody] CreatePeliculaDto dto,
         CancellationToken cancellationToken)
@@ -46,7 +45,7 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
     }
 
     /// <remarks>
-    /// Sin query params devuelve exactamente lo mismo que NestJS. Opcionales: <c>nombre</c> (búsqueda),
+    /// Sin query params devuelve exactamente lo mismo que NestJS. Opcionales: <c>nombre</c> / <c>search</c> (búsqueda),
     /// <c>page</c>, <c>limit</c> / <c>pageSize</c>. El cuerpo SIEMPRE es un array; los metadatos de
     /// paginación van en headers <c>X-Total-Count</c>, <c>X-Page</c>, <c>X-Limit</c>, <c>X-Total-Pages</c>.
     /// </remarks>
@@ -81,9 +80,11 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
     }
 
     [HttpPatch("{id}")]
+    [HttpPut("{id}")]
     [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PeliculaResponseDto>> Update(
         int id,
@@ -99,6 +100,7 @@ public class PeliculasController(IPeliculasService peliculasService) : Controlle
     [Authorize]
     [ProducesResponseType<PeliculaResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PeliculaResponseDto>> Remove(int id, CancellationToken cancellationToken)
     {

@@ -11,13 +11,12 @@ namespace PeliculasReviewApi.Controllers;
 
 /// <summary>
 /// Equivalente a <c>ReviewsController</c> de NestJS (<c>@Controller('reviews')</c> + prefijo global <c>api</c>).
-/// Protegido con JWT; <c>PATCH</c> y <c>DELETE</c> verifican que el usuario sea el autor o <c>ADMIN</c>.
+/// Los endpoints de lectura (<c>GET</c>) son públicos; los de escritura (<c>POST</c>, <c>PATCH</c>, <c>PUT</c>, <c>DELETE</c>)
+/// exigen JWT (<c>[Authorize]</c>) y verifican que el usuario sea el autor o <c>ADMIN</c>.
 /// </summary>
 [ApiController]
 [Route("api/reviews")]
-[Authorize]
 [Produces("application/json")]
-[ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
 public class ReviewsController(IReviewsService reviewsService) : ControllerBase
 {
     private const string MensajeSoloPropias = "Solo puedes editar o eliminar tus propias reseñas";
@@ -26,8 +25,10 @@ public class ReviewsController(IReviewsService reviewsService) : ControllerBase
     private const string MensajeTokenInvalido = "Token invalido o expirado";
 
     [HttpPost]
+    [Authorize]
     [ProducesResponseType<ReviewResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ReviewResponseDto>> Create(
@@ -49,13 +50,30 @@ public class ReviewsController(IReviewsService reviewsService) : ControllerBase
         };
     }
 
+    /// <remarks>
+    /// Soporta búsqueda (<c>nombre</c>, <c>search</c>, <c>titulo</c>, <c>peliculaId</c>, <c>autorId</c>)
+    /// y paginación opcional (<c>page</c>, <c>limit</c> / <c>pageSize</c>).
+    /// El cuerpo SIEMPRE es un array plano para mantener el contrato con el frontend de Vue;
+    /// los metadatos de paginación viajan en headers <c>X-Total-Count</c>, <c>X-Page</c>, <c>X-Limit</c>, <c>X-Total-Pages</c>.
+    /// </remarks>
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<ReviewResponseDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<ReviewResponseDto>>> FindAll(
+        [FromQuery] ReviewsQueryDto query,
         CancellationToken cancellationToken)
     {
-        var reviews = await reviewsService.FindAllAsync(cancellationToken);
-        return Ok(reviews);
+        var resultado = await reviewsService.FindAllAsync(query, cancellationToken);
+
+        Response.Headers["X-Total-Count"] = resultado.Total.ToString();
+        if (resultado.Page is { } page && resultado.Limit is { } limit)
+        {
+            Response.Headers["X-Page"] = page.ToString();
+            Response.Headers["X-Limit"] = limit.ToString();
+            Response.Headers["X-Total-Pages"] = resultado.TotalPages?.ToString() ?? "0";
+        }
+
+        return Ok(resultado.Items);
     }
 
     [HttpGet("{id}")]
@@ -73,8 +91,11 @@ public class ReviewsController(IReviewsService reviewsService) : ControllerBase
     }
 
     [HttpPatch("{id}")]
+    [HttpPut("{id}")]
+    [Authorize]
     [ProducesResponseType<ReviewResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status409Conflict)]
@@ -102,8 +123,10 @@ public class ReviewsController(IReviewsService reviewsService) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     [ProducesResponseType<ReviewResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ErrorResponseDto>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReviewResponseDto>> Remove(

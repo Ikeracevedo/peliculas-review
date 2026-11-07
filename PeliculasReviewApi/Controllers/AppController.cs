@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PeliculasReviewApi.Controllers;
 
 /// <summary>
 /// Equivalente a <c>AppController</c> en NestJS (<c>GET /api</c>).
+/// Endpoint de lectura pública (healthcheck / bienvenida).
 /// </summary>
 [ApiController]
 [Route("api")]
-[Authorize]
 public class AppController : ControllerBase
 {
     [HttpGet]
