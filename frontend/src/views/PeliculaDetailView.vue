@@ -5,7 +5,7 @@ import { api } from '../api';
 import type { Pelicula, Review } from '../types';
 import { useAuthStore } from '../stores/auth';
 import { useWatchlistStore } from '../stores/watchlist';
-import { Play, Plus, Share2, Star, Trash2, Edit2, Check } from '@lucide/vue';
+import { Play, Plus, Star, Trash2, Edit2, Check } from '@lucide/vue';
 
 const route = useRoute();
 const authStore = useAuthStore();

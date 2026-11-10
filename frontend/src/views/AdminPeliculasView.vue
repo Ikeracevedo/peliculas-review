@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { api } from '../api';
 import type { Pelicula } from '../types';
-import { Plus, Search, Edit2, Trash2, MoreHorizontal, ChevronLeft, ChevronRight } from '@lucide/vue';
+import { Plus, Search, Edit2, Trash2, MoreHorizontal } from '@lucide/vue';
 
 const peliculas = ref<Pelicula[]>([]);
 const loading = ref(true);

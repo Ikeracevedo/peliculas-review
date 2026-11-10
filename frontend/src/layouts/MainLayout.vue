@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
-import { Film, LogOut, User as UserIcon, Bookmark } from '@lucide/vue';
+import { Film, User as UserIcon, Bookmark } from '@lucide/vue';
 
 const authStore = useAuthStore();
 const router = useRouter();

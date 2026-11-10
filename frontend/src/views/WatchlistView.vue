@@ -34,7 +34,7 @@ const peliculas = computed(() => watchlistStore.watchlist);
       >
         <div
           class="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 border border-[#2a2a2a] group-hover:border-[#a855f7] transition-colors"
-          @click="router.push(/peliculas/)"
+          @click="router.push(`/peliculas/${pelicula.id}`)"
         >
           <img
             :src="pelicula.imagen"

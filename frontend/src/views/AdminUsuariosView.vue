@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { api } from '../api';
 import type { Usuario } from '../types';
-import { Search, Edit2, Trash2, Key, Ban, UserCog } from '@lucide/vue';
+import { Search, Edit2, Ban, UserCog } from '@lucide/vue';
 
 const usuarios = ref<Usuario[]>([]);
 const loading = ref(true);
