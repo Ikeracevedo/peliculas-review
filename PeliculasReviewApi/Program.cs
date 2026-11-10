@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -203,34 +204,26 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, _, _) =>
     {
+        document.Info.Title = "Películas Review API";
+        document.Info.Version = "v1";
+        document.Info.Description = "API REST para reseñas de películas.";
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes["Bearer"] = bearerSecurityScheme;
-
-        document.Security ??= [];
-        document.Security.Add(new OpenApiSecurityRequirement
-        {
-            [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
-        });
-
         return Task.CompletedTask;
     });
-});
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.AddOperationTransformer((operation, context, _) =>
     {
-        Title = "Películas Review API",
-        Version = "v1",
-        Description = "API REST en ASP.NET Core Web API para reseñas de películas (migración desde NestJS).",
-    });
-
-    options.AddSecurityDefinition("Bearer", bearerSecurityScheme);
-
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+        if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+        {
+            operation.Security ??= [];
+            operation.Security.Add(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = [],
+            });
+        }
+        return Task.CompletedTask;
     });
 });
 
@@ -243,10 +236,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Películas Review API v1");
+    options.SwaggerEndpoint("/openapi/v1.json", "Películas Review API v1");
     options.DocumentTitle = "Películas Review API - Swagger UI";
 });
 app.MapOpenApi();

@@ -24,9 +24,7 @@ public class PeliculasService(AppDbContext context) : IPeliculasService
             var terminoMinusculas = termino.ToLowerInvariant();
             peliculas = peliculas.Where(p => p.Nombre.ToLower().Contains(terminoMinusculas));
         }
-
-        // Mismo orden que NestJS (creadaEn desc). El desempate por id hace estable la paginación
-        // cuando varias películas comparten fecha (p. ej. las del seeder).
+        
         var ordenadas = peliculas
             .OrderByDescending(p => p.CreadaEn)
             .ThenByDescending(p => p.Id);
